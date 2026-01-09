@@ -33,7 +33,7 @@ export function useAuth() {
         is_admin: userData.is_admin,
         created_at: new Date().toISOString(),
       });
-    } catch (err) {
+    } catch {
       localStorage.removeItem("access_token");
       setToken(null);
       setUser(null);

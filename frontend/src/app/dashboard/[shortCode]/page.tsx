@@ -18,7 +18,6 @@ import {
   Globe,
   Monitor,
   TrendingUp,
-  Link2,
   Calendar,
   MousePointer,
   AlertCircle,

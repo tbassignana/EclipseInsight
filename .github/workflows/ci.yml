@@ -49,7 +49,7 @@ jobs:
           JWT_SECRET_KEY: test-secret-key-for-ci
           ANTHROPIC_API_KEY: ""
         run: |
-          pytest tests/ -v --cov=app --cov-report=xml
+          pytest app/tests/ -v --cov=app --cov-report=xml
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4

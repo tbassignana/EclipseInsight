@@ -28,7 +28,7 @@ class TestProjectStructure:
         """Verify core configuration file exists."""
         from app.core.config import settings
 
-        assert settings.APP_NAME == "EclipseURL"
+        assert settings.APP_NAME == "EclipseInsight"
         assert settings.API_V1_STR == "/api/v1"
         assert settings.SHORT_CODE_LENGTH == 7
 
@@ -55,4 +55,4 @@ class TestProjectStructure:
         from app.main import app
 
         assert app is not None
-        assert app.title == "EclipseURL"
+        assert app.title == "EclipseInsight"

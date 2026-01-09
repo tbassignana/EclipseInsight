@@ -31,7 +31,7 @@ export function Navbar() {
   // Hydration fix - only render full navbar after mount
   // This is a standard Next.js pattern for handling hydration mismatches
   useEffect(() => {
-    setMounted(true); // eslint-disable-line react-hooks/set-state-in-effect
+    setMounted(true);
   }, []);
 
   const isLoggedIn = isAuthenticated;

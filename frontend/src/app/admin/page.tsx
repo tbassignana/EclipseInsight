@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,6 @@ import {
   ExternalLink,
   AlertCircle,
   BarChart3,
-  Brain,
 } from "lucide-react";
 
 interface AdminStats {
@@ -55,16 +54,7 @@ export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-    checkAdminAndFetch(token);
-  }, [router]);
-
-  const checkAdminAndFetch = async (token: string) => {
+  const checkAdminAndFetch = useCallback(async (token: string) => {
     try {
       const user = await authApi.me(token);
       if (!user.is_admin) {
@@ -77,7 +67,16 @@ export default function AdminDashboard() {
     } catch {
       router.push("/login");
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+    checkAdminAndFetch(token);
+  }, [router, checkAdminAndFetch]);
 
   const fetchStats = async (token: string) => {
     try {
@@ -274,7 +273,7 @@ export default function AdminDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Calendar className="w-5 h-5" />
-                  Today's Activity
+                  Today&apos;s Activity
                 </CardTitle>
               </CardHeader>
               <CardContent>
