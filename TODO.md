@@ -20,13 +20,13 @@ Refactoring EclipseURL into EclipseInsight with AI-powered content analysis and 
   - Ensure JWT/OAuth2 works
   - Add endpoint tweaks for AI features
 
-- [ ] **4. AI Analysis Logic**
+- [x] **4. AI Analysis Logic** [DONE]
   - Create service to fetch URL content (via requests/BeautifulSoup)
   - Call Anthropic API (Claude-3.5-Sonnet) for analysis
   - Prompt: "Analyze this content: [text]. Generate 5 tags, 1-sentence summary, suggested alias. Detect toxicity."
   - Handle key prompt if not set
 
-- [ ] **5. Update Shorten Endpoint**
+- [x] **5. Update Shorten Endpoint** [DONE]
   - POST integrates AI analysis
   - Saves tags/summary/suggested_alias
   - Offers custom alias or AI-suggested
@@ -107,3 +107,5 @@ Refactoring EclipseURL into EclipseInsight with AI-powered content analysis and 
 | 1. Initial Setup & Dependencies | DONE | 2026-01-09 |
 | 2. Backend Config & Models | DONE | 2026-01-09 |
 | 3. User Authentication Refactor | DONE | 2026-01-09 |
+| 4. AI Analysis Logic | DONE | 2026-01-09 |
+| 5. Update Shorten Endpoint | DONE | 2026-01-09 |
