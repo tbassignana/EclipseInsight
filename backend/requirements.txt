@@ -1,0 +1,53 @@
+# FastAPI and server
+fastapi>=0.124.0,<0.125.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.6
+
+# MongoDB
+motor>=3.3.2
+beanie>=1.25.0
+
+# Redis
+redis>=5.0.1
+aioredis>=2.0.1
+
+# Authentication
+passlib[bcrypt]>=1.7.4
+python-jose[cryptography]>=3.3.0
+bcrypt>=4.0.1,<5.0.0
+
+# Rate limiting
+slowapi>=0.1.9
+
+# Validation
+pydantic>=2.5.3
+pydantic-settings>=2.1.0
+email-validator>=2.1.0
+
+# Testing
+pytest>=7.4.4
+pytest-asyncio>=0.23.3
+httpx>=0.26.0
+pytest-cov>=4.1.0
+
+# URL preview and content fetching
+linkpreview>=0.8.0
+beautifulsoup4>=4.12.2
+aiohttp>=3.9.1
+requests>=2.31.0
+lxml>=5.1.0
+
+# AI - Anthropic
+anthropic>=0.74.0,<0.75.0
+
+# URL Preview - Puppeteer alternative for Python
+pyppeteer>=2.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+shortuuid>=1.0.11
+
+# Dev dependencies (for CI linting)
+ruff>=0.1.9
+black>=24.1.0
+isort>=5.13.2
