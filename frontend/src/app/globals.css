@@ -1,0 +1,253 @@
+@import "tailwindcss";
+
+/* EclipseInsight dark red theme */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --primary: #8B0000;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #171717;
+  --accent: #4B0000;
+  --accent-foreground: #ffffff;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #8B0000;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --radius: 0.5rem;
+  /* Additional EclipseInsight colors */
+  --eclipse-red: #8B0000;
+  --eclipse-dark-red: #4B0000;
+  --eclipse-grey: #4B5563;
+  --eclipse-gradient: linear-gradient(to right, #8B0000, #4B0000);
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #fafafa;
+  --primary: #DC2626;
+  --primary-foreground: #ffffff;
+  --secondary: #1c1c1e;
+  --secondary-foreground: #fafafa;
+  --accent: #8B0000;
+  --accent-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --card: #0f0f0f;
+  --card-foreground: #fafafa;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #DC2626;
+  --destructive: #dc2626;
+  --destructive-foreground: #fafafa;
+  /* Dark mode EclipseInsight colors */
+  --eclipse-red: #DC2626;
+  --eclipse-dark-red: #991B1B;
+  --eclipse-grey: #4B5563;
+  --eclipse-gradient: linear-gradient(to right, #DC2626, #991B1B);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 4px);
+  /* EclipseInsight custom colors */
+  --color-eclipse-red: var(--eclipse-red);
+  --color-eclipse-dark-red: var(--eclipse-dark-red);
+  --color-eclipse-grey: var(--eclipse-grey);
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* EclipseInsight dark red background pattern */
+.eclipse-bg {
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 50%, #0a0a0a 100%);
+  position: relative;
+}
+
+.eclipse-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top, rgba(139, 0, 0, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Custom scrollbar for dark theme */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1c1c1e;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4B5563;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6B7280;
+}
+
+/* EclipseInsight gradient button styles */
+.btn-gradient {
+  background: linear-gradient(135deg, #8B0000 0%, #4B0000 100%);
+  transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+  transform: scale(1.02);
+  box-shadow: 0 10px 30px rgba(139, 0, 0, 0.4);
+}
+
+.dark .btn-gradient {
+  background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%);
+}
+
+.dark .btn-gradient:hover {
+  box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
+}
+
+/* Glass morphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .glass {
+  background: rgba(139, 0, 0, 0.1);
+  border: 1px solid rgba(139, 0, 0, 0.2);
+}
+
+/* EclipseInsight card style */
+.eclipse-card {
+  background: rgba(75, 85, 99, 0.1);
+  border: 1px solid rgba(75, 85, 99, 0.2);
+  border-radius: var(--radius);
+}
+
+.dark .eclipse-card {
+  background: rgba(139, 0, 0, 0.05);
+  border: 1px solid rgba(139, 0, 0, 0.15);
+}
+
+/* Animation utilities */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(139, 0, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(139, 0, 0, 0.8);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* AI badge glow */
+.ai-badge {
+  background: linear-gradient(135deg, #DC2626, #991B1B);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Tag styles */
+.tag {
+  background: rgba(75, 85, 99, 0.2);
+  color: var(--muted-foreground);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.tag:hover {
+  background: rgba(139, 0, 0, 0.2);
+  color: var(--foreground);
+}
