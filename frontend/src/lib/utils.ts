@@ -55,6 +55,15 @@ export function formatDate(date: Date | string): string {
   });
 }
 
+export function formatAbsoluteDate(date: Date | string): string {
+  const dateObj = new Date(date);
+  return dateObj.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 export function formatNumber(num: number): string {
   if (num >= 1000000) {
     const value = num / 1000000;

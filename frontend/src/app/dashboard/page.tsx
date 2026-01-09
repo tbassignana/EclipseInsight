@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { urlApi } from "@/lib/api";
-import { formatDate, formatNumber, copyToClipboard } from "@/lib/utils";
+import { formatDate, formatAbsoluteDate, formatNumber, copyToClipboard } from "@/lib/utils";
 import {
   Link2,
   Copy,
@@ -299,7 +299,7 @@ export default function DashboardPage() {
                                 <BarChart3 className="w-3 h-3" />
                                 {formatNumber(url.clicks)} clicks
                               </span>
-                              <span>Created {formatDate(url.created_at)}</span>
+                              <span>Created on {formatAbsoluteDate(url.created_at)}</span>
                               {url.expiration && (
                                 <span className="text-yellow-500">
                                   Expires {formatDate(url.expiration)}
