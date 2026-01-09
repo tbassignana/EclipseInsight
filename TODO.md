@@ -32,7 +32,7 @@ Refactoring EclipseURL into EclipseInsight with AI-powered content analysis and 
   - Offers custom alias or AI-suggested
   - Reject if toxic
 
-- [ ] **6. URL Preview**
+- [x] **6. URL Preview** [DONE]
   - Add service using Puppeteer (headless) to generate PNG preview
   - Store in Mongo GridFS
   - Add /preview/{short_code} endpoint
@@ -109,3 +109,4 @@ Refactoring EclipseURL into EclipseInsight with AI-powered content analysis and 
 | 3. User Authentication Refactor | DONE | 2026-01-09 |
 | 4. AI Analysis Logic | DONE | 2026-01-09 |
 | 5. Update Shorten Endpoint | DONE | 2026-01-09 |
+| 6. URL Preview | DONE | 2026-01-09 |
