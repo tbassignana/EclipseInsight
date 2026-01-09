@@ -9,7 +9,9 @@ export function formatDate(date: Date | string): string {
   const dateObj = new Date(date);
   const now = new Date();
   const diffMs = now.getTime() - dateObj.getTime();
-  const diffSec = Math.floor(diffMs / 1000);
+  const isFuture = diffMs < 0;
+  const absDiffMs = Math.abs(diffMs);
+  const diffSec = Math.floor(absDiffMs / 1000);
   const diffMin = Math.floor(diffSec / 60);
   const diffHours = Math.floor(diffMin / 60);
   const diffDays = Math.floor(diffHours / 24);
@@ -17,17 +19,33 @@ export function formatDate(date: Date | string): string {
   if (diffSec < 10) {
     return "just now";
   }
-  if (diffSec < 60) {
-    return `${diffSec} seconds ago`;
-  }
-  if (diffMin < 60) {
-    return `${diffMin} ${diffMin === 1 ? "minute" : "minutes"} ago`;
-  }
-  if (diffHours < 24) {
-    return `${diffHours} ${diffHours === 1 ? "hour" : "hours"} ago`;
-  }
-  if (diffDays < 7) {
-    return `${diffDays} ${diffDays === 1 ? "day" : "days"} ago`;
+
+  if (isFuture) {
+    if (diffSec < 60) {
+      return `in ${diffSec} seconds`;
+    }
+    if (diffMin < 60) {
+      return `in ${diffMin} ${diffMin === 1 ? "minute" : "minutes"}`;
+    }
+    if (diffHours < 24) {
+      return `in ${diffHours} ${diffHours === 1 ? "hour" : "hours"}`;
+    }
+    if (diffDays < 7) {
+      return `in ${diffDays} ${diffDays === 1 ? "day" : "days"}`;
+    }
+  } else {
+    if (diffSec < 60) {
+      return `${diffSec} seconds ago`;
+    }
+    if (diffMin < 60) {
+      return `${diffMin} ${diffMin === 1 ? "minute" : "minutes"} ago`;
+    }
+    if (diffHours < 24) {
+      return `${diffHours} ${diffHours === 1 ? "hour" : "hours"} ago`;
+    }
+    if (diffDays < 7) {
+      return `${diffDays} ${diffDays === 1 ? "day" : "days"} ago`;
+    }
   }
 
   return dateObj.toLocaleDateString("en-US", {
