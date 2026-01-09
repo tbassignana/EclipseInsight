@@ -16,7 +16,7 @@ Refactoring EclipseURL into EclipseInsight with AI-powered content analysis and 
   - Migrate models: User, ShortURL (add fields: tags[list], summary[str], suggested_alias[str]), ClickLog
   - Set up Anthropic client in a service file (load key from os.environ, prompt user if missing during dev)
 
-- [ ] **3. User Authentication Refactor**
+- [x] **3. User Authentication Refactor** [DONE]
   - Ensure JWT/OAuth2 works
   - Add endpoint tweaks for AI features
 
@@ -106,3 +106,4 @@ Refactoring EclipseURL into EclipseInsight with AI-powered content analysis and 
 |------|--------|------|
 | 1. Initial Setup & Dependencies | DONE | 2026-01-09 |
 | 2. Backend Config & Models | DONE | 2026-01-09 |
+| 3. User Authentication Refactor | DONE | 2026-01-09 |
