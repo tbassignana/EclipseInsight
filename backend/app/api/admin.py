@@ -5,7 +5,11 @@ from app.services.analytics import get_top_urls
 from app.services.url import get_short_url_by_code, delete_short_url
 from app.models.user import User
 
-router = APIRouter(prefix="/admin", tags=["Admin"])
+router = APIRouter(
+    prefix="/admin",
+    tags=["Admin"],
+    responses={403: {"description": "Admin access required"}},
+)
 
 
 @router.get("/top-urls")
@@ -14,7 +18,12 @@ async def get_top_urls_list(
     current_admin: User = Depends(get_current_active_admin)
 ):
     """
-    Get top URLs by click count (admin only).
+    Get top-performing URLs by click count.
+
+    View the most clicked shortened URLs across the EclipseInsight platform,
+    including their AI-generated tags and content analysis status.
+
+    - **limit**: Maximum URLs to return (1-100, default: 10)
     """
     if limit > 100:
         limit = 100
@@ -29,7 +38,12 @@ async def admin_delete_url(
     current_admin: User = Depends(get_current_active_admin)
 ):
     """
-    Delete any URL (admin only).
+    Remove a shortened URL from the platform.
+
+    Admins can delete any URL, including those flagged by AI toxicity detection
+    or reported by users. This is a soft delete that deactivates the short link.
+
+    - **short_code**: The unique identifier of the URL to delete
     """
     short_url = await get_short_url_by_code(short_code)
 
@@ -55,7 +69,11 @@ async def get_admin_summary(
     current_admin: User = Depends(get_current_active_admin)
 ):
     """
-    Get overall platform statistics (admin only).
+    Get EclipseInsight platform overview statistics.
+
+    Returns comprehensive metrics including total URLs created, click counts,
+    user registrations, and activity trends for today and the past week.
+    Useful for monitoring platform health and growth.
     """
     from app.models.url import ShortURL
     from app.models.click import ClickLog

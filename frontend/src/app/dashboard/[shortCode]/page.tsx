@@ -7,8 +7,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
-import { urlApi } from "@/lib/api";
-import { formatNumber, copyToClipboard } from "@/lib/utils";
+import { urlApi, type URLResponse } from "@/lib/api";
+import { formatNumber, copyToClipboard, formatDate } from "@/lib/utils";
 import {
   ArrowLeft,
   Copy,
@@ -22,6 +22,14 @@ import {
   Calendar,
   MousePointer,
   AlertCircle,
+  Brain,
+  Tags,
+  FileText,
+  Wand2,
+  ShieldCheck,
+  ShieldAlert,
+  Image as ImageIcon,
+  Clock,
 } from "lucide-react";
 
 interface UrlStats {
@@ -99,6 +107,7 @@ function TimeSeriesChart({ data }: { data: Array<{ date: string; count: number }
 
 export default function UrlStatsPage() {
   const [stats, setStats] = useState<UrlStats | null>(null);
+  const [urlDetails, setUrlDetails] = useState<URLResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -106,15 +115,20 @@ export default function UrlStatsPage() {
   const params = useParams();
   const shortCode = params.shortCode as string;
 
-  const fetchStats = useCallback(async (token: string) => {
+  const fetchData = useCallback(async (token: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await urlApi.stats(shortCode, token);
-      setStats(data);
+      // Fetch both stats and URL details (for AI analysis) in parallel
+      const [statsData, urlData] = await Promise.all([
+        urlApi.stats(shortCode, token),
+        urlApi.get(shortCode, token),
+      ]);
+      setStats(statsData);
+      setUrlDetails(urlData);
     } catch (err) {
-      console.error("Stats fetch error:", err);
-      setError(err instanceof Error ? err.message : "Failed to load stats");
+      console.error("Data fetch error:", err);
+      setError(err instanceof Error ? err.message : "Failed to load data");
     } finally {
       setIsLoading(false);
     }
@@ -126,20 +140,19 @@ export default function UrlStatsPage() {
       router.push("/login");
       return;
     }
-    fetchStats(token);
-  }, [router, fetchStats]);
+    fetchData(token);
+  }, [router, fetchData]);
 
   const handleCopy = async () => {
-    if (stats) {
-      const shortUrl = `${window.location.origin}/${stats.short_code}`;
-      await copyToClipboard(shortUrl);
+    if (urlDetails) {
+      await copyToClipboard(urlDetails.short_url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-  const shortUrl = stats ? `${baseUrl}/${stats.short_code}` : "";
+  // Use the short_url from API which has the correct backend BASE_URL
+  const shortUrl = urlDetails?.short_url || "";
 
   if (isLoading) {
     return (
@@ -207,12 +220,34 @@ export default function UrlStatsPage() {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Link2 className="w-5 h-5 text-primary" />
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-600 to-red-900 flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-500/20">
+                  <Brain className="w-5 h-5 text-white" />
                 </div>
-                <h1 className="text-2xl font-bold truncate">{shortUrl}</h1>
+                <div>
+                  <h1 className="text-2xl font-bold truncate">{shortUrl}</h1>
+                  <div className="flex items-center gap-2 text-sm">
+                    {urlDetails?.ai?.analyzed && (
+                      <span className="flex items-center gap-1 text-primary">
+                        <Brain className="w-3 h-3" />
+                        AI Analyzed
+                      </span>
+                    )}
+                    {urlDetails?.ai?.is_toxic === false && (
+                      <span className="flex items-center gap-1 text-green-500">
+                        <ShieldCheck className="w-3 h-3" />
+                        Safe
+                      </span>
+                    )}
+                    {urlDetails?.expiration && (
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <Clock className="w-3 h-3" />
+                        Expires {formatDate(urlDetails.expiration)}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
-              <p className="text-muted-foreground truncate">{stats.original_url}</p>
+              <p className="text-muted-foreground truncate ml-13">{stats.original_url}</p>
             </div>
 
             <div className="flex items-center gap-2">
@@ -284,6 +319,169 @@ export default function UrlStatsPage() {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* AI Insights & Preview Section */}
+        {urlDetails && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8"
+          >
+            {/* AI Analysis Card */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-primary" />
+                  AI Content Analysis
+                </CardTitle>
+                <CardDescription>
+                  {urlDetails.ai?.analyzed
+                    ? `Analyzed ${urlDetails.ai.analyzed_at ? formatDate(urlDetails.ai.analyzed_at) : "recently"}`
+                    : "Content analysis powered by Claude AI"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {urlDetails.ai?.analyzed ? (
+                  <>
+                    {/* Summary */}
+                    {urlDetails.ai.summary && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                          <FileText className="w-4 h-4" />
+                          AI Summary
+                        </div>
+                        <p className="text-sm bg-secondary/50 p-3 rounded-lg">
+                          {urlDetails.ai.summary}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Tags */}
+                    {urlDetails.ai.tags && urlDetails.ai.tags.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                          <Tags className="w-4 h-4" />
+                          Auto-Generated Tags
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {urlDetails.ai.tags.map((tag, index) => (
+                            <motion.span
+                              key={tag}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: index * 0.05 }}
+                              className="px-3 py-1 text-sm font-medium rounded-full bg-primary/10 text-primary border border-primary/20"
+                            >
+                              {tag}
+                            </motion.span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Suggested Alias & Safety Status */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {urlDetails.ai.suggested_alias && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                            <Wand2 className="w-4 h-4" />
+                            Suggested Alias
+                          </div>
+                          <p className="font-mono text-sm text-primary bg-primary/5 p-2 rounded border border-primary/10">
+                            /{urlDetails.ai.suggested_alias}
+                          </p>
+                        </div>
+                      )}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                          {urlDetails.ai.is_toxic ? (
+                            <ShieldAlert className="w-4 h-4 text-destructive" />
+                          ) : (
+                            <ShieldCheck className="w-4 h-4 text-green-500" />
+                          )}
+                          Content Safety
+                        </div>
+                        <div className={`flex items-center gap-2 p-2 rounded border ${
+                          urlDetails.ai.is_toxic
+                            ? "bg-destructive/10 border-destructive/20 text-destructive"
+                            : "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400"
+                        }`}>
+                          {urlDetails.ai.is_toxic ? (
+                            <>
+                              <ShieldAlert className="w-4 h-4" />
+                              <span className="text-sm font-medium">Flagged as potentially harmful</span>
+                            </>
+                          ) : (
+                            <>
+                              <ShieldCheck className="w-4 h-4" />
+                              <span className="text-sm font-medium">Content verified safe</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <Brain className="w-12 h-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">
+                      AI analysis was skipped for this link
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Enable AI analysis when creating links to get insights
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Link Preview Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ImageIcon className="w-5 h-5" />
+                  Link Preview
+                </CardTitle>
+                <CardDescription>
+                  How this link appears when shared
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {urlDetails.preview_title || urlDetails.preview_description || urlDetails.preview_image ? (
+                  <div className="space-y-3">
+                    {urlDetails.preview_image && (
+                      <div className="aspect-video rounded-lg bg-muted overflow-hidden">
+                        <img
+                          src={urlDetails.preview_image}
+                          alt="Link preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    {urlDetails.preview_title && (
+                      <h4 className="font-semibold text-sm line-clamp-2">
+                        {urlDetails.preview_title}
+                      </h4>
+                    )}
+                    {urlDetails.preview_description && (
+                      <p className="text-sm text-muted-foreground line-clamp-3">
+                        {urlDetails.preview_description}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <ImageIcon className="w-10 h-10 text-muted-foreground mb-3" />
+                    <p className="text-sm text-muted-foreground">
+                      No preview available
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

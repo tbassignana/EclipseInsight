@@ -16,7 +16,11 @@ from app.services.url import (
 from app.models.user import User
 from app.models.url import ShortURL
 
-router = APIRouter(prefix="/urls", tags=["URLs"])
+router = APIRouter(
+    prefix="/urls",
+    tags=["URLs"],
+    responses={404: {"description": "URL not found"}},
+)
 limiter = Limiter(key_func=get_remote_address)
 
 
@@ -121,8 +125,10 @@ async def get_url_statistics(
 
     # Verify ownership (unless admin)
     if not current_user.is_admin:
-        await short_url.fetch_link(ShortURL.user)
-        if short_url.user.id != current_user.id:
+        # Get user ID from the Link reference
+        user_ref = short_url.user
+        user_id = user_ref.ref.id if hasattr(user_ref, 'ref') else getattr(user_ref, 'id', None)
+        if user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not authorized to access this URL"
@@ -149,8 +155,10 @@ async def get_url_details(
 
     # Verify ownership (unless admin)
     if not current_user.is_admin:
-        await short_url.fetch_link(ShortURL.user)
-        if short_url.user.id != current_user.id:
+        # Get user ID from the Link reference
+        user_ref = short_url.user
+        user_id = user_ref.ref.id if hasattr(user_ref, 'ref') else getattr(user_ref, 'id', None)
+        if user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not authorized to access this URL"

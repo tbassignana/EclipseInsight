@@ -32,8 +32,27 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.APP_NAME,
-    description="A modern URL shortener service with analytics",
-    version="1.0.0",
+    description="""
+## EclipseInsight - AI-Powered URL Shortener
+
+EclipseInsight is an advanced URL shortening service with AI-powered content analysis.
+
+### Features:
+- **AI Content Analysis**: Automatically analyze URLs using Claude AI
+- **Smart Auto-Tagging**: Generate relevant tags from content
+- **AI Summaries**: Get concise content summaries
+- **Toxicity Detection**: Automatically reject harmful content
+- **Suggested Aliases**: AI-recommended memorable short codes
+- **Rich Previews**: Auto-generated Open Graph previews
+- **Real-Time Analytics**: Track clicks, referrers, devices, and geography
+- **Custom Expiration**: Set link expiration dates
+- **Rate Limiting**: Built-in protection against abuse
+
+### Authentication:
+All URL creation and management endpoints require Bearer token authentication.
+Use `/api/v1/auth/login` to obtain a token.
+    """,
+    version="2.0.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",

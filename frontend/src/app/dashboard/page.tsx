@@ -117,15 +117,15 @@ export default function DashboardPage() {
           className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8"
         >
           <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <h1 className="text-3xl font-bold">Insights Dashboard</h1>
             <p className="text-muted-foreground mt-1">
-              Manage and track your shortened URLs
+              AI-analyzed links with tags, summaries, and real-time analytics
             </p>
           </div>
           <Link href="/shorten">
             <Button variant="gradient">
               <Plus className="w-4 h-4 mr-2" />
-              New Short Link
+              Analyze New Link
             </Button>
           </Link>
         </motion.div>
@@ -233,16 +233,16 @@ export default function DashboardPage() {
                 </div>
               ) : filteredUrls.length === 0 ? (
                 <div className="text-center py-12">
-                  <Link2 className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium">No links yet</h3>
+                  <Brain className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium">No analyzed links yet</h3>
                   <p className="text-muted-foreground mt-1 mb-4">
-                    {searchQuery ? "No links match your search" : "Create your first short link to get started"}
+                    {searchQuery ? "No links match your search" : "Create your first AI-analyzed link to get insights"}
                   </p>
                   {!searchQuery && (
                     <Link href="/shorten">
                       <Button variant="gradient">
                         <Plus className="w-4 h-4 mr-2" />
-                        Create Short Link
+                        Analyze First Link
                       </Button>
                     </Link>
                   )}

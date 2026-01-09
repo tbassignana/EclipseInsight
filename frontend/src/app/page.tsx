@@ -5,39 +5,49 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Link2, BarChart3, Shield, Zap, Globe, Clock, LayoutDashboard } from "lucide-react";
+import { Brain, BarChart3, ShieldAlert, Sparkles, Tags, FileText, Clock, Eye, LayoutDashboard } from "lucide-react";
 import { useAuthContext } from "@/context/AuthContext";
 
 const features = [
   {
-    icon: <Link2 className="w-6 h-6" />,
-    title: "Custom Short Links",
-    description: "Create memorable, branded short links with custom aliases that reflect your identity.",
+    icon: <Brain className="w-6 h-6" />,
+    title: "AI-Powered Analysis",
+    description: "Claude AI automatically analyzes your content, extracting key insights and understanding context.",
+  },
+  {
+    icon: <Tags className="w-6 h-6" />,
+    title: "Smart Auto-Tagging",
+    description: "Get intelligent tags generated from your content to improve organization and discoverability.",
+  },
+  {
+    icon: <FileText className="w-6 h-6" />,
+    title: "AI Summaries",
+    description: "Receive concise, AI-generated summaries that capture the essence of linked content.",
+  },
+  {
+    icon: <ShieldAlert className="w-6 h-6" />,
+    title: "Toxicity Detection",
+    description: "Automatic content moderation rejects harmful or toxic links before they're shared.",
+  },
+  {
+    icon: <Sparkles className="w-6 h-6" />,
+    title: "Suggested Aliases",
+    description: "AI recommends memorable, relevant short aliases based on your content's meaning.",
+  },
+  {
+    icon: <Eye className="w-6 h-6" />,
+    title: "Rich Previews",
+    description: "Auto-generated visual previews with titles and descriptions for every shortened link.",
   },
   {
     icon: <BarChart3 className="w-6 h-6" />,
-    title: "Advanced Analytics",
-    description: "Track clicks, referrers, devices, and locations with real-time analytics dashboard.",
-  },
-  {
-    icon: <Shield className="w-6 h-6" />,
-    title: "Secure & Reliable",
-    description: "Enterprise-grade security with HTTPS encryption and 99.9% uptime guarantee.",
-  },
-  {
-    icon: <Zap className="w-6 h-6" />,
-    title: "Lightning Fast",
-    description: "Global CDN ensures your links redirect in milliseconds, anywhere in the world.",
-  },
-  {
-    icon: <Globe className="w-6 h-6" />,
-    title: "Global Reach",
-    description: "Track visitors from every country with detailed geographic insights.",
+    title: "Real-Time Analytics",
+    description: "Track clicks, referrers, devices, and geographic data with live dashboards.",
   },
   {
     icon: <Clock className="w-6 h-6" />,
-    title: "Link Expiration",
-    description: "Set custom expiration dates for time-sensitive campaigns and promotions.",
+    title: "Smart Expiration",
+    description: "Set custom expiration dates for time-sensitive campaigns and temporary shares.",
   },
 ];
 
@@ -75,16 +85,21 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <div className="flex justify-center mb-8">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 }}
+              className="flex justify-center mb-8"
+            >
               <Image
-                src="/EclipseURL.png"
-                alt="EclipseURL Logo"
+                src="/EclipseInsight.png"
+                alt="EclipseInsight Logo"
                 width={800}
                 height={300}
                 priority
-                className="h-auto"
+                className="h-auto max-w-full"
               />
-            </div>
+            </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
@@ -92,8 +107,8 @@ export default function Home() {
               transition={{ delay: 0.2 }}
               className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight"
             >
-              <span className="bg-gradient-to-r from-foreground via-primary to-blue-400 bg-clip-text text-transparent">
-                Shorten. Track. Grow.
+              <span className="bg-gradient-to-r from-foreground via-primary to-red-400 bg-clip-text text-transparent">
+                AI-Powered Link Intelligence
               </span>
             </motion.h1>
 
@@ -101,10 +116,11 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto"
+              className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto"
             >
-              Transform long URLs into powerful, trackable links. Get insights that matter
-              with our enterprise-grade URL shortening platform.
+              Transform URLs into intelligent, analyzed links. Get AI-generated tags, summaries,
+              and content insights powered by Claude. Detect toxic content automatically and
+              track everything with real-time analytics.
             </motion.p>
 
             <motion.div
@@ -117,14 +133,14 @@ export default function Home() {
                 <>
                   <Link href="/shorten">
                     <Button variant="gradient" size="lg" className="w-full sm:w-auto text-lg px-8 py-6">
-                      <Link2 className="w-5 h-5 mr-2" />
-                      Shorten URL
+                      <Brain className="w-5 h-5 mr-2" />
+                      Analyze & Shorten
                     </Button>
                   </Link>
                   <Link href="/dashboard">
                     <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8 py-6">
                       <LayoutDashboard className="w-5 h-5 mr-2" />
-                      Dashboard
+                      View Insights
                     </Button>
                   </Link>
                 </>
@@ -132,7 +148,8 @@ export default function Home() {
                 <>
                   <Link href="/register">
                     <Button variant="gradient" size="lg" className="w-full sm:w-auto text-lg px-8 py-6">
-                      Get Started Free
+                      <Sparkles className="w-5 h-5 mr-2" />
+                      Start Analyzing Free
                     </Button>
                   </Link>
                   <Link href="/login">
@@ -151,7 +168,7 @@ export default function Home() {
                 transition={{ delay: 0.5 }}
                 className="mt-4 text-sm text-muted-foreground"
               >
-                No credit card required
+                Powered by Claude AI — No credit card required
               </motion.p>
             )}
           </motion.div>
@@ -168,10 +185,11 @@ export default function Home() {
             className="text-center mb-16"
           >
             <h2 className="text-3xl sm:text-4xl font-bold">
-              Everything you need to manage your links
+              Intelligent Link Management
             </h2>
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-              Powerful features designed for marketers, developers, and businesses of all sizes.
+              AI-powered features that understand your content, protect your reputation,
+              and deliver actionable insights.
             </p>
           </motion.div>
 
@@ -180,7 +198,7 @@ export default function Home() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             {features.map((feature, index) => (
               <motion.div key={index} variants={itemVariants}>
@@ -209,10 +227,10 @@ export default function Home() {
             className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
           >
             {[
-              { value: "10M+", label: "Links Created" },
-              { value: "500M+", label: "Clicks Tracked" },
-              { value: "99.9%", label: "Uptime" },
-              { value: "150+", label: "Countries" },
+              { value: "AI", label: "Powered by Claude" },
+              { value: "100%", label: "Content Analyzed" },
+              { value: "Real-Time", label: "Analytics" },
+              { value: "Auto", label: "Toxicity Detection" },
             ].map((stat, index) => (
               <motion.div
                 key={index}
@@ -221,7 +239,7 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
               >
-                <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
+                <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary to-red-400 bg-clip-text text-transparent">
                   {stat.value}
                 </div>
                 <div className="mt-2 text-muted-foreground">{stat.label}</div>
@@ -233,7 +251,7 @@ export default function Home() {
 
       {/* CTA Section */}
       <section className="py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-blue-500/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-red-500/20" />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -241,16 +259,17 @@ export default function Home() {
             viewport={{ once: true }}
           >
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              {isAuthenticated ? "Ready to create your next link?" : "Ready to supercharge your links?"}
+              {isAuthenticated ? "Ready to analyze your next link?" : "Ready to unlock AI-powered insights?"}
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
               {isAuthenticated
-                ? "Head to the shortener to create a new trackable link in seconds."
-                : "Join thousands of businesses using EclipseURL to track and optimize their marketing campaigns."}
+                ? "Create intelligent short links with AI-generated tags, summaries, and content analysis."
+                : "Join EclipseInsight to transform your URLs into intelligent, analyzed links with automatic content understanding."}
             </p>
             <Link href={isAuthenticated ? "/shorten" : "/register"}>
               <Button variant="gradient" size="lg" className="text-lg px-8 py-6">
-                {isAuthenticated ? "Create Short Link" : "Start Shortening Now"}
+                <Brain className="w-5 h-5 mr-2" />
+                {isAuthenticated ? "Analyze & Create Link" : "Start With AI Analysis"}
               </Button>
             </Link>
           </motion.div>

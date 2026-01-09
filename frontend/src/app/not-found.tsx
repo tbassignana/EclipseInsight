@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Home, Link2, Search } from "lucide-react";
+import { Home, Brain, Search } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -45,7 +45,7 @@ export default function NotFound() {
           transition={{ delay: 0.2 }}
           className="text-2xl font-semibold mb-2"
         >
-          Page Not Found
+          Link Not Found
         </motion.h2>
 
         <motion.p
@@ -54,7 +54,7 @@ export default function NotFound() {
           transition={{ delay: 0.3 }}
           className="text-muted-foreground mb-8"
         >
-          The page you&apos;re looking for doesn&apos;t exist or has been moved.
+          This link doesn&apos;t exist, has expired, or was flagged by our AI content moderation.
         </motion.p>
 
         <motion.div
@@ -71,8 +71,8 @@ export default function NotFound() {
           </Link>
           <Link href="/shorten">
             <Button variant="outline">
-              <Link2 className="w-4 h-4 mr-2" />
-              Shorten a URL
+              <Brain className="w-4 h-4 mr-2" />
+              Analyze a Link
             </Button>
           </Link>
         </motion.div>

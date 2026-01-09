@@ -44,9 +44,9 @@ export default function PrivacyPolicyPage() {
             <section>
               <h2 className="text-xl font-semibold mb-3">1. Introduction</h2>
               <p className="text-muted-foreground leading-relaxed">
-                EclipseURL (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is committed to protecting your privacy. This Privacy Policy
-                explains how we collect, use, disclose, and safeguard your information when you use our URL
-                shortening service.
+                EclipseInsight (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) is committed to protecting your privacy. This Privacy Policy
+                explains how we collect, use, disclose, and safeguard your information when you use our AI-powered
+                URL shortening and content analysis service.
               </p>
             </section>
 
@@ -77,13 +77,32 @@ export default function PrivacyPolicyPage() {
                 We use the collected information to:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>Provide and maintain our URL shortening service</li>
+                <li>Provide and maintain our AI-powered URL shortening service</li>
+                <li>Analyze linked content using AI to generate tags, summaries, and suggested aliases</li>
+                <li>Detect and filter potentially harmful or toxic content</li>
                 <li>Generate analytics and insights for your shortened links</li>
-                <li>Improve and optimize our service</li>
+                <li>Improve and optimize our AI models and service</li>
                 <li>Communicate with you about your account</li>
                 <li>Detect and prevent fraud or abuse</li>
                 <li>Comply with legal obligations</li>
               </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-semibold mb-3">3a. AI Processing</h2>
+              <p className="text-muted-foreground leading-relaxed mb-3">
+                Our service uses Anthropic&apos;s Claude AI to analyze content from URLs you submit. This processing includes:
+              </p>
+              <ul className="list-disc list-inside text-muted-foreground space-y-2">
+                <li>Fetching and analyzing publicly available content from submitted URLs</li>
+                <li>Generating descriptive tags and summaries based on content</li>
+                <li>Suggesting memorable aliases based on content meaning</li>
+                <li>Evaluating content for potential toxicity or harmful material</li>
+              </ul>
+              <p className="text-muted-foreground leading-relaxed mt-3">
+                Content sent for AI analysis is processed in accordance with Anthropic&apos;s data handling policies.
+                We do not use your data to train AI models.
+              </p>
             </section>
 
             <section>
@@ -174,8 +193,8 @@ export default function PrivacyPolicyPage() {
               <h2 className="text-xl font-semibold mb-3">12. Contact Us</h2>
               <p className="text-muted-foreground leading-relaxed">
                 If you have questions or concerns about this Privacy Policy or our data practices, please contact us at:{" "}
-                <a href="mailto:privacy@eclipseurl.com" className="text-primary hover:underline">
-                  privacy@eclipseurl.com
+                <a href="mailto:privacy@eclipseinsight.com" className="text-primary hover:underline">
+                  privacy@eclipseinsight.com
                 </a>
               </p>
             </section>
@@ -185,7 +204,7 @@ export default function PrivacyPolicyPage() {
           <div className="mt-12 pt-8 border-t border-border">
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
               <p className="text-sm text-muted-foreground">
-                Your privacy is important to us. Thank you for trusting EclipseURL.
+                Your privacy is important to us. Thank you for trusting EclipseInsight.
               </p>
               <Link href="/register">
                 <Button variant="gradient">

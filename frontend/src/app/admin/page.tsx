@@ -180,7 +180,7 @@ export default function AdminDashboard() {
           <div>
             <h1 className="text-3xl font-bold">Admin Dashboard</h1>
             <p className="text-muted-foreground">
-              Platform overview and management
+              EclipseInsight platform overview and content management
             </p>
           </div>
         </motion.div>

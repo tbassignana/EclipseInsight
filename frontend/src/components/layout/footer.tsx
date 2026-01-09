@@ -4,7 +4,8 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Github, Twitter, Linkedin } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Extract base URL from API URL (remove /api/v1 suffix if present)
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/api\/v1\/?$/, "");
 
 export function Footer() {
   const currentYear = new Date().getFullYear();

@@ -6,14 +6,33 @@ from app.services.url import get_short_url_by_code
 from app.services.click import log_click
 from app.services.preview import preview_service
 
-router = APIRouter(tags=["Redirect"])
+router = APIRouter(
+    tags=["Redirect"],
+    responses={
+        404: {"description": "Short URL not found"},
+        410: {"description": "URL has expired or been deactivated"}
+    },
+)
+
+
+def is_expired(expiration: datetime | None) -> bool:
+    """Check if a datetime has expired, handling both naive and aware datetimes."""
+    if not expiration:
+        return False
+    now = datetime.now(timezone.utc)
+    # If expiration is naive, treat it as UTC
+    if expiration.tzinfo is None:
+        expiration = expiration.replace(tzinfo=timezone.utc)
+    return now > expiration
 
 
 @router.get("/{short_code}")
 async def redirect_to_url(short_code: str, request: Request):
     """
-    Redirect to the original URL.
-    Uses 302 redirect to preserve analytics tracking.
+    Redirect to the original URL and log analytics.
+
+    Uses 302 redirect (not 301) to ensure every click is tracked.
+    Captures IP, user agent, and referrer for analytics insights.
     """
     short_url = await get_short_url_by_code(short_code)
 
@@ -30,7 +49,7 @@ async def redirect_to_url(short_code: str, request: Request):
         )
 
     # Check expiration
-    if short_url.expiration and datetime.now(timezone.utc) > short_url.expiration:
+    if is_expired(short_url.expiration):
         raise HTTPException(
             status_code=status.HTTP_410_GONE,
             detail="URL has expired"
@@ -61,8 +80,10 @@ async def redirect_to_url(short_code: str, request: Request):
 @router.get("/{short_code}/preview")
 async def get_url_preview_page(short_code: str):
     """
-    Get URL preview information without redirecting.
-    Useful for preview cards/tooltips.
+    Get URL preview with AI-generated metadata.
+
+    Returns Open Graph data, AI-generated tags, and content summary
+    without redirecting. Ideal for preview cards and link tooltips.
     """
     short_url = await get_short_url_by_code(short_code)
 
@@ -73,7 +94,7 @@ async def get_url_preview_page(short_code: str):
         )
 
     # Check expiration
-    if short_url.expiration and datetime.now(timezone.utc) > short_url.expiration:
+    if is_expired(short_url.expiration):
         raise HTTPException(
             status_code=status.HTTP_410_GONE,
             detail="URL has expired"
@@ -92,8 +113,10 @@ async def get_url_preview_page(short_code: str):
 @router.get("/{short_code}/screenshot")
 async def get_url_screenshot(short_code: str):
     """
-    Get a screenshot of the shortened URL.
-    Returns the screenshot image if available, or generates one on demand.
+    Get a visual preview screenshot of the destination page.
+
+    Returns a PNG screenshot if cached, or generates one on-demand.
+    Screenshots are stored in GridFS for efficient retrieval.
     """
     short_url = await get_short_url_by_code(short_code)
 
@@ -104,7 +127,7 @@ async def get_url_screenshot(short_code: str):
         )
 
     # Check expiration
-    if short_url.expiration and datetime.now(timezone.utc) > short_url.expiration:
+    if is_expired(short_url.expiration):
         raise HTTPException(
             status_code=status.HTTP_410_GONE,
             detail="URL has expired"

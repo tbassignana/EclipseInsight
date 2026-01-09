@@ -44,7 +44,7 @@ export default function TermsOfServicePage() {
             <section>
               <h2 className="text-xl font-semibold mb-3">1. Acceptance of Terms</h2>
               <p className="text-muted-foreground leading-relaxed">
-                By accessing and using EclipseURL (&quot;the Service&quot;), you accept and agree to be bound by the terms
+                By accessing and using EclipseInsight (&quot;the Service&quot;), you accept and agree to be bound by the terms
                 and provisions of this agreement. If you do not agree to these terms, please do not use our Service.
               </p>
             </section>
@@ -52,8 +52,10 @@ export default function TermsOfServicePage() {
             <section>
               <h2 className="text-xl font-semibold mb-3">2. Description of Service</h2>
               <p className="text-muted-foreground leading-relaxed">
-                EclipseURL provides URL shortening services that allow users to create shortened versions of long URLs,
-                track click analytics, and manage their links through a dashboard interface.
+                EclipseInsight provides AI-powered URL shortening and content analysis services. Our platform uses
+                artificial intelligence (powered by Anthropic&apos;s Claude) to analyze linked content, generate tags and summaries,
+                suggest intelligent aliases, detect potentially harmful content, and provide real-time analytics through
+                an interactive dashboard.
               </p>
             </section>
 
@@ -85,7 +87,7 @@ export default function TermsOfServicePage() {
             <section>
               <h2 className="text-xl font-semibold mb-3">5. Intellectual Property</h2>
               <p className="text-muted-foreground leading-relaxed">
-                The Service and its original content, features, and functionality are owned by EclipseURL and are
+                The Service and its original content, features, and functionality are owned by EclipseInsight and are
                 protected by international copyright, trademark, and other intellectual property laws.
               </p>
             </section>
@@ -101,7 +103,7 @@ export default function TermsOfServicePage() {
             <section>
               <h2 className="text-xl font-semibold mb-3">7. Limitation of Liability</h2>
               <p className="text-muted-foreground leading-relaxed">
-                EclipseURL shall not be liable for any indirect, incidental, special, consequential, or punitive
+                EclipseInsight shall not be liable for any indirect, incidental, special, consequential, or punitive
                 damages resulting from your use of the Service. The Service is provided &quot;as is&quot; without warranties
                 of any kind.
               </p>
@@ -127,8 +129,8 @@ export default function TermsOfServicePage() {
               <h2 className="text-xl font-semibold mb-3">10. Contact Information</h2>
               <p className="text-muted-foreground leading-relaxed">
                 If you have any questions about these Terms of Service, please contact us at{" "}
-                <a href="mailto:legal@eclipseurl.com" className="text-primary hover:underline">
-                  legal@eclipseurl.com
+                <a href="mailto:legal@eclipseinsight.com" className="text-primary hover:underline">
+                  legal@eclipseinsight.com
                 </a>
               </p>
             </section>
@@ -138,7 +140,7 @@ export default function TermsOfServicePage() {
           <div className="mt-12 pt-8 border-t border-border">
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
               <p className="text-sm text-muted-foreground">
-                By using EclipseURL, you acknowledge that you have read and understood these terms.
+                By using EclipseInsight, you acknowledge that you have read and understood these terms.
               </p>
               <Link href="/register">
                 <Button variant="gradient">

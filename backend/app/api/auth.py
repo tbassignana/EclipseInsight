@@ -9,7 +9,11 @@ from app.schemas.user import UserCreate, UserLogin, UserResponse, Token
 from app.services.auth import create_user, get_user_by_email, authenticate_user
 from app.models.user import User
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(
+    prefix="/auth",
+    tags=["Authentication"],
+    responses={401: {"description": "Invalid credentials"}},
+)
 limiter = Limiter(key_func=get_remote_address)
 
 
@@ -17,7 +21,10 @@ limiter = Limiter(key_func=get_remote_address)
 @limiter.limit(settings.RATE_LIMIT_REGISTER)
 async def register(request: Request, user_data: UserCreate):
     """
-    Register a new user account.
+    Register a new EclipseInsight account.
+
+    Create an account to access AI-powered URL shortening with content analysis,
+    auto-tagging, summaries, and toxicity detection.
 
     - **email**: Valid email address (unique)
     - **password**: Minimum 8 characters
@@ -45,7 +52,10 @@ async def register(request: Request, user_data: UserCreate):
 @router.post("/login", response_model=Token)
 async def login(user_data: UserLogin):
     """
-    Authenticate user and return access token.
+    Authenticate and receive a Bearer token for EclipseInsight API access.
+
+    Use the returned token in the Authorization header for all protected endpoints:
+    `Authorization: Bearer <token>`
 
     - **email**: Registered email address
     - **password**: Account password
@@ -76,7 +86,10 @@ async def login(user_data: UserLogin):
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """
-    Get the current authenticated user's information.
+    Get the current authenticated user's profile.
+
+    Returns account details including admin status for accessing
+    EclipseInsight's advanced analytics and management features.
     """
     return UserResponse(
         id=str(current_user.id),

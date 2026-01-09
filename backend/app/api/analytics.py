@@ -12,7 +12,11 @@ from app.services.analytics import (
 from app.services.url import get_short_url_by_code
 from app.models.user import User
 
-router = APIRouter(prefix="/stats", tags=["Analytics"])
+router = APIRouter(
+    prefix="/stats",
+    tags=["Analytics"],
+    responses={404: {"description": "URL not found"}},
+)
 
 
 @router.get("/{short_code}", response_model=URLStats)
@@ -21,8 +25,14 @@ async def get_url_statistics(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Get comprehensive statistics for a shortened URL.
-    Includes click counts, referrers, device breakdown, and time series data.
+    Get comprehensive analytics for a shortened URL.
+
+    Returns detailed insights including:
+    - Total click counts and trends
+    - Referrer sources analysis
+    - Device and browser breakdown
+    - Geographic distribution
+    - Time series click data for visualization
     """
     # Verify the URL exists and user has access
     short_url = await get_short_url_by_code(short_code)
@@ -35,8 +45,9 @@ async def get_url_statistics(
 
     # Check ownership (unless admin)
     if not current_user.is_admin:
-        await short_url.fetch_link(short_url.__class__.user)
-        if short_url.user.id != current_user.id:
+        user_ref = short_url.user
+        user_id = user_ref.ref.id if hasattr(user_ref, 'ref') else getattr(user_ref, 'id', None)
+        if user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not authorized to view these stats"
@@ -58,8 +69,10 @@ async def get_realtime_clicks(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Get real-time click count from Redis cache.
-    Faster than full stats for dashboard polling.
+    Get real-time click count for live dashboard updates.
+
+    Uses Redis cache for sub-millisecond response times.
+    Ideal for dashboard polling and live analytics displays.
     """
     short_url = await get_short_url_by_code(short_code)
 
@@ -71,8 +84,9 @@ async def get_realtime_clicks(
 
     # Check ownership
     if not current_user.is_admin:
-        await short_url.fetch_link(short_url.__class__.user)
-        if short_url.user.id != current_user.id:
+        user_ref = short_url.user
+        user_id = user_ref.ref.id if hasattr(user_ref, 'ref') else getattr(user_ref, 'id', None)
+        if user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not authorized"
@@ -88,7 +102,10 @@ async def get_browser_breakdown(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Get browser breakdown for URL clicks.
+    Get browser usage breakdown for URL clicks.
+
+    Returns distribution of clicks across different browsers
+    (Chrome, Firefox, Safari, Edge, etc.) for audience analysis.
     """
     short_url = await get_short_url_by_code(short_code)
 
@@ -99,8 +116,9 @@ async def get_browser_breakdown(
         )
 
     if not current_user.is_admin:
-        await short_url.fetch_link(short_url.__class__.user)
-        if short_url.user.id != current_user.id:
+        user_ref = short_url.user
+        user_id = user_ref.ref.id if hasattr(user_ref, 'ref') else getattr(user_ref, 'id', None)
+        if user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not authorized"
@@ -117,6 +135,9 @@ async def get_os_breakdown(
 ):
     """
     Get operating system breakdown for URL clicks.
+
+    Returns distribution of clicks across different operating systems
+    (Windows, macOS, iOS, Android, Linux) for audience insights.
     """
     short_url = await get_short_url_by_code(short_code)
 
@@ -127,8 +148,9 @@ async def get_os_breakdown(
         )
 
     if not current_user.is_admin:
-        await short_url.fetch_link(short_url.__class__.user)
-        if short_url.user.id != current_user.id:
+        user_ref = short_url.user
+        user_id = user_ref.ref.id if hasattr(user_ref, 'ref') else getattr(user_ref, 'id', None)
+        if user_id != current_user.id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Not authorized"

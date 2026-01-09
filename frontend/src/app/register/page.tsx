@@ -74,7 +74,7 @@ export default function RegisterPage() {
             </motion.div>
             <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
             <CardDescription>
-              Get started with AI-powered URL shortening
+              Unlock AI-powered link intelligence with Claude
             </CardDescription>
           </CardHeader>
           <CardContent>
