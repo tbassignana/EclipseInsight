@@ -1,0 +1,80 @@
+version: "3.8"
+
+# Development configuration - mounts local code for hot reloading
+services:
+  mongodb:
+    image: mongo:7
+    container_name: eclipse-mongodb-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: eclipse
+      MONGO_INITDB_ROOT_PASSWORD: eclipse_secret
+      MONGO_INITDB_DATABASE: eclipse_url
+    volumes:
+      - mongodb_dev_data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - eclipse-network-dev
+
+  redis:
+    image: redis:7-alpine
+    container_name: eclipse-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_dev_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - eclipse-network-dev
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: eclipse-backend-dev
+    restart: unless-stopped
+    environment:
+      APP_NAME: EclipseURL
+      MONGODB_URL: mongodb://eclipse:eclipse_secret@mongodb:27017/eclipse_url?authSource=admin
+      REDIS_URL: redis://redis:6379
+      SECRET_KEY: dev-secret-key-not-for-production
+      CORS_ORIGINS: '["http://localhost:3000"]'
+      BASE_URL: http://localhost:8000
+    volumes:
+      - ./backend/app:/app/app:ro
+    ports:
+      - "8000:8000"
+    networks:
+      - eclipse-network-dev
+    depends_on:
+      - mongodb
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: eclipse-frontend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    volumes:
+      - ./frontend/src:/app/src:ro
+      - ./frontend/public:/app/public:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - eclipse-network-dev
+    depends_on:
+      - backend
+
+volumes:
+  mongodb_dev_data:
+  redis_dev_data:
+
+networks:
+  eclipse-network-dev:
+    driver: bridge

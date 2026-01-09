@@ -1,0 +1,12 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://eclipseurl.com/sitemap.xml
+
+# Disallow admin and auth pages from search engines
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+Disallow: /dashboard

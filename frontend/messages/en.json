@@ -1,0 +1,229 @@
+{
+  "common": {
+    "appName": "EclipseURL",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "search": "Search",
+    "noResults": "No results found"
+  },
+  "nav": {
+    "home": "Home",
+    "shorten": "Shorten",
+    "dashboard": "Dashboard",
+    "admin": "Admin",
+    "login": "Login",
+    "register": "Sign Up",
+    "logout": "Logout"
+  },
+  "home": {
+    "title": "Shorten URLs, Track Clicks",
+    "subtitle": "Transform long URLs into short, trackable links with powerful analytics",
+    "getStarted": "Get Started Free",
+    "viewDemo": "View Demo",
+    "features": {
+      "title": "Why Choose EclipseURL?",
+      "shortLinks": {
+        "title": "Smart Short Links",
+        "description": "Create memorable, custom short URLs with one click"
+      },
+      "analytics": {
+        "title": "Advanced Analytics",
+        "description": "Track clicks, locations, devices, and referrers in real-time"
+      },
+      "security": {
+        "title": "Enterprise Security",
+        "description": "Your data is protected with industry-standard encryption"
+      },
+      "api": {
+        "title": "Developer API",
+        "description": "Integrate URL shortening into your apps with our REST API"
+      }
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Enter your credentials to access your account",
+      "email": "Email",
+      "password": "Password",
+      "forgotPassword": "Forgot password?",
+      "submit": "Sign In",
+      "noAccount": "New to EclipseURL?",
+      "createAccount": "Create an account"
+    },
+    "register": {
+      "title": "Create an account",
+      "subtitle": "Get started with EclipseURL for free",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "submit": "Create Account",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "terms": "By creating an account, you agree to our",
+      "termsLink": "Terms of Service",
+      "and": "and",
+      "privacyLink": "Privacy Policy"
+    },
+    "passwordRequirements": {
+      "minLength": "At least 8 characters",
+      "number": "Contains a number",
+      "uppercase": "Contains uppercase letter"
+    },
+    "errors": {
+      "invalidCredentials": "Invalid email or password",
+      "emailExists": "An account with this email already exists",
+      "passwordMismatch": "Passwords do not match",
+      "weakPassword": "Password must be at least 8 characters"
+    }
+  },
+  "shorten": {
+    "title": "Shorten Your URL",
+    "subtitle": "Transform long URLs into short, trackable links",
+    "urlLabel": "URL to Shorten",
+    "urlPlaceholder": "https://example.com/your/long/url",
+    "aliasLabel": "Custom Alias (Optional)",
+    "aliasPlaceholder": "my-custom-link",
+    "aliasHelp": "4-20 characters, letters, numbers, dashes, and underscores only",
+    "expirationLabel": "Expiration (Optional)",
+    "neverExpires": "Never expires",
+    "expirationOptions": {
+      "1day": "1 day",
+      "7days": "7 days",
+      "30days": "30 days",
+      "90days": "90 days",
+      "1year": "1 year"
+    },
+    "submit": "Shorten URL",
+    "shortening": "Shortening...",
+    "success": {
+      "title": "URL Shortened!",
+      "subtitle": "Your short link is ready to use",
+      "copyButton": "Copy",
+      "openButton": "Open",
+      "anotherButton": "Shorten Another",
+      "dashboardButton": "View Dashboard"
+    },
+    "preview": {
+      "loading": "Loading preview...",
+      "noTitle": "No title available",
+      "noDescription": "No description available"
+    },
+    "errors": {
+      "invalidUrl": "Please enter a valid URL",
+      "aliasUnavailable": "This custom alias is already taken",
+      "rateLimited": "Too many requests. Please try again later."
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Manage and track your shortened URLs",
+    "newLink": "New Short Link",
+    "stats": {
+      "totalLinks": "Total Links",
+      "totalClicks": "Total Clicks",
+      "avgClicks": "Avg. Clicks/Link"
+    },
+    "links": {
+      "title": "Your Links",
+      "searchPlaceholder": "Search links...",
+      "noLinks": "No links yet",
+      "noLinksSearch": "No links match your search",
+      "createFirst": "Create your first short link to get started",
+      "clicks": "{count} clicks",
+      "created": "Created {date}",
+      "expires": "Expires {date}",
+      "viewStats": "Stats",
+      "confirmDelete": "Are you sure you want to delete this link?"
+    }
+  },
+  "stats": {
+    "title": "Link Statistics",
+    "backToDashboard": "Back to Dashboard",
+    "overview": {
+      "totalClicks": "Total Clicks",
+      "today": "Today",
+      "thisWeek": "This Week"
+    },
+    "charts": {
+      "clicksOverTime": "Clicks Over Time",
+      "last7Days": "Last 7 days performance",
+      "topReferrers": "Top Referrers",
+      "referrersSubtitle": "Where your clicks come from",
+      "devices": "Devices",
+      "devicesSubtitle": "Breakdown by device type",
+      "countries": "Countries",
+      "countriesSubtitle": "Geographic distribution",
+      "noData": "No data yet"
+    }
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "subtitle": "Platform overview and management",
+    "accessDenied": {
+      "title": "Access Denied",
+      "message": "You do not have permission to access the admin dashboard.",
+      "button": "Go to Dashboard"
+    },
+    "stats": {
+      "totalUsers": "Total Users",
+      "totalLinks": "Total Links",
+      "totalClicks": "Total Clicks",
+      "clicksToday": "Clicks Today"
+    },
+    "activity": {
+      "today": "Today's Activity",
+      "thisWeek": "This Week",
+      "newLinks": "New Links",
+      "clicks": "Clicks"
+    },
+    "topUrls": {
+      "title": "Top Performing URLs",
+      "searchPlaceholder": "Search URLs or users...",
+      "noUrls": "No URLs found",
+      "noUrlsSearch": "No URLs match your search",
+      "noUrlsYet": "No URLs have been created yet",
+      "createdBy": "Created by: {email}",
+      "confirmDelete": "Are you sure you want to delete this URL? This action cannot be undone."
+    }
+  },
+  "errors": {
+    "404": {
+      "title": "404",
+      "heading": "Page Not Found",
+      "message": "The page you're looking for doesn't exist or has been moved.",
+      "homeButton": "Go Home",
+      "shortenButton": "Shorten a URL"
+    },
+    "generic": {
+      "title": "Something went wrong",
+      "message": "An unexpected error occurred. Our team has been notified and is working on a fix.",
+      "errorId": "Error ID: {id}",
+      "tryAgain": "Try Again",
+      "homeButton": "Go Home"
+    }
+  },
+  "footer": {
+    "tagline": "Transform long URLs into short, trackable links.",
+    "product": "Product",
+    "features": "Features",
+    "pricing": "Pricing",
+    "api": "API",
+    "company": "Company",
+    "about": "About",
+    "blog": "Blog",
+    "careers": "Careers",
+    "support": "Support",
+    "helpCenter": "Help Center",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "copyright": "All rights reserved."
+  }
+}

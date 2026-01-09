@@ -1,0 +1,229 @@
+{
+  "common": {
+    "appName": "EclipseURL",
+    "loading": "Cargando...",
+    "error": "Ocurrio un error",
+    "success": "Exito",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "copy": "Copiar",
+    "copied": "Copiado!",
+    "search": "Buscar",
+    "noResults": "No se encontraron resultados"
+  },
+  "nav": {
+    "home": "Inicio",
+    "shorten": "Acortar",
+    "dashboard": "Panel",
+    "admin": "Admin",
+    "login": "Iniciar sesion",
+    "register": "Registrarse",
+    "logout": "Cerrar sesion"
+  },
+  "home": {
+    "title": "Acorta URLs, Rastrea Clics",
+    "subtitle": "Transforma URLs largas en enlaces cortos y rastreables con analisis avanzado",
+    "getStarted": "Comenzar Gratis",
+    "viewDemo": "Ver Demo",
+    "features": {
+      "title": "Por que elegir EclipseURL?",
+      "shortLinks": {
+        "title": "Enlaces Cortos Inteligentes",
+        "description": "Crea URLs cortas personalizadas y memorables con un clic"
+      },
+      "analytics": {
+        "title": "Analisis Avanzado",
+        "description": "Rastrea clics, ubicaciones, dispositivos y referencias en tiempo real"
+      },
+      "security": {
+        "title": "Seguridad Empresarial",
+        "description": "Tus datos estan protegidos con cifrado de nivel industrial"
+      },
+      "api": {
+        "title": "API para Desarrolladores",
+        "description": "Integra el acortamiento de URLs en tus apps con nuestra API REST"
+      }
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Bienvenido de nuevo",
+      "subtitle": "Ingresa tus credenciales para acceder a tu cuenta",
+      "email": "Correo electronico",
+      "password": "Contrasena",
+      "forgotPassword": "Olvidaste tu contrasena?",
+      "submit": "Iniciar Sesion",
+      "noAccount": "Nuevo en EclipseURL?",
+      "createAccount": "Crear una cuenta"
+    },
+    "register": {
+      "title": "Crear una cuenta",
+      "subtitle": "Comienza con EclipseURL gratis",
+      "email": "Correo electronico",
+      "password": "Contrasena",
+      "confirmPassword": "Confirmar Contrasena",
+      "submit": "Crear Cuenta",
+      "hasAccount": "Ya tienes una cuenta?",
+      "signIn": "Iniciar sesion",
+      "terms": "Al crear una cuenta, aceptas nuestros",
+      "termsLink": "Terminos de Servicio",
+      "and": "y",
+      "privacyLink": "Politica de Privacidad"
+    },
+    "passwordRequirements": {
+      "minLength": "Al menos 8 caracteres",
+      "number": "Contiene un numero",
+      "uppercase": "Contiene letra mayuscula"
+    },
+    "errors": {
+      "invalidCredentials": "Correo o contrasena invalidos",
+      "emailExists": "Ya existe una cuenta con este correo",
+      "passwordMismatch": "Las contrasenas no coinciden",
+      "weakPassword": "La contrasena debe tener al menos 8 caracteres"
+    }
+  },
+  "shorten": {
+    "title": "Acorta tu URL",
+    "subtitle": "Transforma URLs largas en enlaces cortos y rastreables",
+    "urlLabel": "URL a Acortar",
+    "urlPlaceholder": "https://ejemplo.com/tu/url/larga",
+    "aliasLabel": "Alias Personalizado (Opcional)",
+    "aliasPlaceholder": "mi-enlace-personalizado",
+    "aliasHelp": "4-20 caracteres, letras, numeros, guiones y guiones bajos",
+    "expirationLabel": "Expiracion (Opcional)",
+    "neverExpires": "Nunca expira",
+    "expirationOptions": {
+      "1day": "1 dia",
+      "7days": "7 dias",
+      "30days": "30 dias",
+      "90days": "90 dias",
+      "1year": "1 ano"
+    },
+    "submit": "Acortar URL",
+    "shortening": "Acortando...",
+    "success": {
+      "title": "URL Acortada!",
+      "subtitle": "Tu enlace corto esta listo para usar",
+      "copyButton": "Copiar",
+      "openButton": "Abrir",
+      "anotherButton": "Acortar Otra",
+      "dashboardButton": "Ver Panel"
+    },
+    "preview": {
+      "loading": "Cargando vista previa...",
+      "noTitle": "Sin titulo disponible",
+      "noDescription": "Sin descripcion disponible"
+    },
+    "errors": {
+      "invalidUrl": "Por favor ingresa una URL valida",
+      "aliasUnavailable": "Este alias personalizado ya esta en uso",
+      "rateLimited": "Demasiadas solicitudes. Intenta de nuevo mas tarde."
+    }
+  },
+  "dashboard": {
+    "title": "Panel",
+    "subtitle": "Administra y rastrea tus URLs acortadas",
+    "newLink": "Nuevo Enlace Corto",
+    "stats": {
+      "totalLinks": "Total de Enlaces",
+      "totalClicks": "Total de Clics",
+      "avgClicks": "Clics Promedio/Enlace"
+    },
+    "links": {
+      "title": "Tus Enlaces",
+      "searchPlaceholder": "Buscar enlaces...",
+      "noLinks": "No hay enlaces aun",
+      "noLinksSearch": "No hay enlaces que coincidan con tu busqueda",
+      "createFirst": "Crea tu primer enlace corto para comenzar",
+      "clicks": "{count} clics",
+      "created": "Creado {date}",
+      "expires": "Expira {date}",
+      "viewStats": "Estadisticas",
+      "confirmDelete": "Estas seguro de que quieres eliminar este enlace?"
+    }
+  },
+  "stats": {
+    "title": "Estadisticas del Enlace",
+    "backToDashboard": "Volver al Panel",
+    "overview": {
+      "totalClicks": "Clics Totales",
+      "today": "Hoy",
+      "thisWeek": "Esta Semana"
+    },
+    "charts": {
+      "clicksOverTime": "Clics en el Tiempo",
+      "last7Days": "Rendimiento de los ultimos 7 dias",
+      "topReferrers": "Principales Referencias",
+      "referrersSubtitle": "De donde vienen tus clics",
+      "devices": "Dispositivos",
+      "devicesSubtitle": "Desglose por tipo de dispositivo",
+      "countries": "Paises",
+      "countriesSubtitle": "Distribucion geografica",
+      "noData": "Sin datos aun"
+    }
+  },
+  "admin": {
+    "title": "Panel de Administracion",
+    "subtitle": "Vista general y gestion de la plataforma",
+    "accessDenied": {
+      "title": "Acceso Denegado",
+      "message": "No tienes permiso para acceder al panel de administracion.",
+      "button": "Ir al Panel"
+    },
+    "stats": {
+      "totalUsers": "Total de Usuarios",
+      "totalLinks": "Total de Enlaces",
+      "totalClicks": "Total de Clics",
+      "clicksToday": "Clics Hoy"
+    },
+    "activity": {
+      "today": "Actividad de Hoy",
+      "thisWeek": "Esta Semana",
+      "newLinks": "Nuevos Enlaces",
+      "clicks": "Clics"
+    },
+    "topUrls": {
+      "title": "URLs con Mejor Rendimiento",
+      "searchPlaceholder": "Buscar URLs o usuarios...",
+      "noUrls": "No se encontraron URLs",
+      "noUrlsSearch": "No hay URLs que coincidan con tu busqueda",
+      "noUrlsYet": "No se han creado URLs aun",
+      "createdBy": "Creado por: {email}",
+      "confirmDelete": "Estas seguro de que quieres eliminar esta URL? Esta accion no se puede deshacer."
+    }
+  },
+  "errors": {
+    "404": {
+      "title": "404",
+      "heading": "Pagina No Encontrada",
+      "message": "La pagina que buscas no existe o ha sido movida.",
+      "homeButton": "Ir al Inicio",
+      "shortenButton": "Acortar una URL"
+    },
+    "generic": {
+      "title": "Algo salio mal",
+      "message": "Ocurrio un error inesperado. Nuestro equipo ha sido notificado y esta trabajando en una solucion.",
+      "errorId": "ID de Error: {id}",
+      "tryAgain": "Intentar de Nuevo",
+      "homeButton": "Ir al Inicio"
+    }
+  },
+  "footer": {
+    "tagline": "Transforma URLs largas en enlaces cortos y rastreables.",
+    "product": "Producto",
+    "features": "Caracteristicas",
+    "pricing": "Precios",
+    "api": "API",
+    "company": "Empresa",
+    "about": "Acerca de",
+    "blog": "Blog",
+    "careers": "Carreras",
+    "support": "Soporte",
+    "helpCenter": "Centro de Ayuda",
+    "terms": "Terminos",
+    "privacy": "Privacidad",
+    "copyright": "Todos los derechos reservados."
+  }
+}
