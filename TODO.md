@@ -11,7 +11,7 @@ Refactoring EclipseURL into EclipseInsight with AI-powered content analysis and 
   - Install/update frontend deps: next@15.4, tailwindcss@4.0, framer-motion@12.25.0, shadcn-ui init, next-intl@4.7.0
   - Create .env.example with ANTHROPIC_API_KEY placeholder
 
-- [ ] **2. Backend Config & Models**
+- [x] **2. Backend Config & Models** [DONE]
   - Switch DB to MongoDB with Motor async driver
   - Migrate models: User, ShortURL (add fields: tags[list], summary[str], suggested_alias[str]), ClickLog
   - Set up Anthropic client in a service file (load key from os.environ, prompt user if missing during dev)
@@ -105,3 +105,4 @@ Refactoring EclipseURL into EclipseInsight with AI-powered content analysis and 
 | Task | Status | Date |
 |------|--------|------|
 | 1. Initial Setup & Dependencies | DONE | 2026-01-09 |
+| 2. Backend Config & Models | DONE | 2026-01-09 |
