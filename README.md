@@ -1,16 +1,32 @@
-# EclipseURL
+# EclipseInsight
 
-A modern, full-stack URL shortener with advanced analytics, built with FastAPI and Next.js.
+A modern, full-stack URL shortener with AI-powered content analysis and advanced analytics, built with FastAPI and Next.js.
 
 ## Features
 
+### Core Features
 - **URL Shortening**: Generate short, memorable links with optional custom aliases
-- **Click Analytics**: Track clicks with detailed breakdowns by device, browser, country, and referrer
+- **Click Analytics**: Track clicks with detailed breakdowns by device, browser, OS, country, and referrer
+- **Real-time Statistics**: Live click counting and analytics via Redis
 - **User Authentication**: Secure JWT-based authentication with role-based access
 - **Rate Limiting**: Protect against abuse with configurable rate limits
 - **Admin Dashboard**: Platform-wide statistics and URL management
+
+### AI-Powered Features
+- **Smart Tag Generation**: Automatically generate relevant tags for URLs using Claude AI
+- **Content Summarization**: AI-generated summaries of linked content
+- **Toxicity Detection**: Automatic detection of potentially harmful content
+- **Suggested Aliases**: AI-powered memorable alias suggestions
+
+### URL Preview System
+- **Open Graph Extraction**: Automatic extraction of page titles, descriptions, and images
+- **Screenshot Generation**: Automated preview screenshots using Puppeteer
+- **Preview Storage**: Screenshots stored in MongoDB GridFS
+
+### User Experience
 - **Dark/Light Mode**: Tesla-inspired theming with smooth transitions
 - **Responsive Design**: Mobile-first UI with Framer Motion animations
+- **Interactive Charts**: Analytics visualization with Recharts
 
 ## Tech Stack
 
@@ -18,15 +34,22 @@ A modern, full-stack URL shortener with advanced analytics, built with FastAPI a
 - **FastAPI** - Modern Python web framework
 - **MongoDB** - Document database with Beanie ODM
 - **Redis** - Caching and real-time analytics
+- **Anthropic Claude** - AI-powered content analysis
 - **JWT** - Secure authentication
 - **SlowAPI** - Rate limiting
+- **Pyppeteer** - Automated screenshot generation
+- **BeautifulSoup** - HTML parsing for URL previews
 
 ### Frontend
-- **Next.js 14+** - React framework with App Router
+- **Next.js 15** - React framework with App Router
+- **React 19** - UI library
 - **TypeScript** - Type-safe development
 - **Tailwind CSS** - Utility-first styling
 - **shadcn/ui** - Accessible component patterns
 - **Framer Motion** - Smooth animations
+- **Recharts** - Analytics data visualization
+- **SWR** - Data fetching and caching
+- **Lucide React** - Icon library
 
 ---
 
@@ -219,22 +242,28 @@ The frontend will be available at: http://localhost:3000
 Create a `.env` file in the project root (or `backend/` directory):
 
 ```bash
+# Application
+APP_NAME=EclipseInsight
+DEBUG=true
+
 # MongoDB Configuration
 MONGO_ROOT_USER=eclipse
 MONGO_ROOT_PASSWORD=your_secure_password_here
-MONGO_DB=eclipse_url
+MONGO_DB=eclipse_insight
 
 # For local development without auth:
-# MONGODB_URL=mongodb://localhost:27017/eclipse_url
+# MONGODB_URL=mongodb://localhost:27017/eclipse_insight
 
 # For authenticated MongoDB:
-MONGODB_URL=mongodb://eclipse:your_secure_password_here@localhost:27017/eclipse_url?authSource=admin
+MONGODB_URL=mongodb://eclipse:your_secure_password_here@localhost:27017/eclipse_insight?authSource=admin
 
 # Redis Configuration
 REDIS_URL=redis://localhost:6379
 
 # Application Security - CHANGE THIS IN PRODUCTION!
 SECRET_KEY=your-super-secret-key-minimum-32-characters-long
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 # URLs
 BASE_URL=http://localhost:8000
@@ -242,6 +271,16 @@ NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 
 # CORS Origins (JSON array)
 CORS_ORIGINS=["http://localhost:3000"]
+
+# Rate Limiting
+RATE_LIMIT_SHORTEN=10/minute
+RATE_LIMIT_REGISTER=5/minute
+
+# Short Code Configuration
+SHORT_CODE_LENGTH=6
+
+# AI Features (Optional - enables smart tagging and content analysis)
+ANTHROPIC_API_KEY=your-anthropic-api-key-here
 ```
 
 ### Frontend Environment Variables
@@ -250,7 +289,8 @@ Create a `.env.local` file in the `frontend/` directory:
 
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+NEXT_PUBLIC_APP_NAME=EclipseInsight
 ```
 
 ### Generating a Secure SECRET_KEY
@@ -366,11 +406,12 @@ For the CI to work properly, configure these secrets in your GitHub repository:
 ## Project Structure
 
 ```
-eclipseurl/
+eclipseinsight/
 ├── backend/
 │   ├── app/
 │   │   ├── api/              # API route handlers
 │   │   │   ├── admin.py      # Admin endpoints
+│   │   │   ├── analytics.py  # Click analytics & breakdown stats
 │   │   │   ├── auth.py       # Authentication endpoints
 │   │   │   ├── redirect.py   # URL redirect handler
 │   │   │   └── urls.py       # URL management endpoints
@@ -379,8 +420,16 @@ eclipseurl/
 │   │   │   ├── database.py   # MongoDB/Redis connections
 │   │   │   └── security.py   # JWT, password hashing
 │   │   ├── models/           # Beanie document models
+│   │   │   ├── click.py      # Click tracking model
+│   │   │   ├── url.py        # URL model with AI fields
+│   │   │   └── user.py       # User model
 │   │   ├── schemas/          # Pydantic request/response schemas
-│   │   └── services/         # Business logic
+│   │   ├── services/         # Business logic
+│   │   │   ├── ai.py         # AI content analysis (Anthropic)
+│   │   │   ├── auth.py       # Authentication service
+│   │   │   ├── click.py      # Click tracking service
+│   │   │   └── preview.py    # URL preview & screenshots
+│   │   └── main.py           # FastAPI app initialization
 │   ├── tests/                # Pytest tests
 │   ├── Dockerfile            # Production Dockerfile
 │   ├── Dockerfile.dev        # Development Dockerfile
@@ -388,11 +437,19 @@ eclipseurl/
 ├── frontend/
 │   ├── src/
 │   │   ├── app/              # Next.js pages (App Router)
+│   │   │   ├── dashboard/    # User dashboard
+│   │   │   ├── admin/        # Admin dashboard
+│   │   │   ├── shorten/      # URL creation page
+│   │   │   └── [shortCode]/  # Dynamic redirect route
 │   │   ├── components/       # React components
+│   │   │   ├── layout/       # Layout components
+│   │   │   ├── ui/           # shadcn/ui components
+│   │   │   └── providers/    # Context providers
 │   │   ├── context/          # React context providers
 │   │   ├── hooks/            # Custom React hooks
 │   │   ├── lib/              # Utilities and API client
-│   │   └── types/            # TypeScript type definitions
+│   │   ├── types/            # TypeScript type definitions
+│   │   └── __tests__/        # Jest tests
 │   ├── public/               # Static assets
 │   ├── Dockerfile            # Production Dockerfile
 │   ├── Dockerfile.dev        # Development Dockerfile
@@ -422,10 +479,19 @@ eclipseurl/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/v1/urls/shorten` | Create short URL |
+| POST | `/api/v1/urls/shorten` | Create short URL (with optional AI analysis) |
 | GET | `/api/v1/urls` | List user's URLs |
 | GET | `/api/v1/urls/{short_code}/stats` | Get URL analytics |
 | DELETE | `/api/v1/urls/{short_code}` | Delete URL |
+
+### Analytics
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/stats/{short_code}` | Get comprehensive URL statistics |
+| GET | `/api/v1/stats/{short_code}/realtime` | Get real-time click count |
+| GET | `/api/v1/stats/{short_code}/browsers` | Get browser breakdown |
+| GET | `/api/v1/stats/{short_code}/os` | Get OS breakdown |
 
 ### Redirect
 
@@ -440,6 +506,13 @@ eclipseurl/
 | GET | `/api/v1/admin/stats/summary` | Platform statistics |
 | GET | `/api/v1/admin/top-urls` | Top performing URLs |
 | DELETE | `/api/v1/admin/urls/{short_code}` | Delete any URL |
+
+### Health
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Basic health check |
+| GET | `/api/v1/health` | API health check |
 
 ---
 
@@ -560,6 +633,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [FastAPI](https://fastapi.tiangolo.com/) - The web framework
 - [Next.js](https://nextjs.org/) - React framework
+- [Anthropic Claude](https://www.anthropic.com/) - AI-powered content analysis
 - [shadcn/ui](https://ui.shadcn.com/) - UI component patterns
 - [Framer Motion](https://www.framer.com/motion/) - Animation library
 - [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Recharts](https://recharts.org/) - Analytics visualization
+- [Beanie](https://beanie-odm.dev/) - MongoDB ODM
