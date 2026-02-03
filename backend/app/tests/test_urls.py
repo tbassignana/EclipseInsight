@@ -310,22 +310,18 @@ class TestUpdateURLEndpoint:
                 assert response.status_code == 404
 
     @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_update_url_invalid_alias(self, mock_user, auth_token):
-        """Test updating with an invalid alias."""
-        with patch("app.core.security.User.find_one", new_callable=AsyncMock) as mock_find:
-            with patch("app.api.urls.update_short_url", new_callable=AsyncMock) as mock_update:
-                mock_find.return_value = mock_user
-                mock_update.side_effect = ValueError("Invalid custom alias format")
+        """Test updating with an invalid alias rejected by schema validation."""
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.patch(
+                "/api/v1/urls/abc123x",
+                json={"custom_alias": "ab"},
+                headers={"Authorization": f"Bearer {auth_token}"},
+            )
 
-                transport = ASGITransport(app=app)
-                async with AsyncClient(transport=transport, base_url="http://test") as client:
-                    response = await client.patch(
-                        "/api/v1/urls/abc123x",
-                        json={"custom_alias": "ab"},
-                        headers={"Authorization": f"Bearer {auth_token}"},
-                    )
-
-                assert response.status_code == 400
+        assert response.status_code == 422
 
     @pytest.mark.asyncio
     async def test_update_url_without_auth(self):
@@ -345,7 +341,7 @@ class TestPreviewEndpoint:
     @pytest.mark.asyncio
     async def test_preview_url(self):
         """Test fetching URL preview metadata."""
-        with patch("app.api.urls.fetch_preview_service", new_callable=AsyncMock) as mock_preview:
+        with patch("app.api.urls.fetch_url_preview", new_callable=AsyncMock) as mock_preview:
             from app.schemas.url import URLPreview
 
             mock_preview.return_value = URLPreview(
