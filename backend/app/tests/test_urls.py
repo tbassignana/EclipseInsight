@@ -310,18 +310,20 @@ class TestUpdateURLEndpoint:
                 assert response.status_code == 404
 
     @pytest.mark.asyncio
-    @pytest.mark.asyncio
     async def test_update_url_invalid_alias(self, mock_user, auth_token):
         """Test updating with an invalid alias rejected by schema validation."""
-        transport = ASGITransport(app=app)
-        async with AsyncClient(transport=transport, base_url="http://test") as client:
-            response = await client.patch(
-                "/api/v1/urls/abc123x",
-                json={"custom_alias": "ab"},
-                headers={"Authorization": f"Bearer {auth_token}"},
-            )
+        with patch("app.core.security.User.find_one", new_callable=AsyncMock) as mock_find:
+            mock_find.return_value = mock_user
 
-        assert response.status_code == 422
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://test") as client:
+                response = await client.patch(
+                    "/api/v1/urls/abc123x",
+                    json={"custom_alias": "ab"},
+                    headers={"Authorization": f"Bearer {auth_token}"},
+                )
+
+            assert response.status_code == 422
 
     @pytest.mark.asyncio
     async def test_update_url_without_auth(self):
