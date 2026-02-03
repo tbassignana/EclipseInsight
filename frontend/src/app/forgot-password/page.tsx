@@ -1,12 +1,37 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Construction, ArrowLeft, Mail, Wrench } from "lucide-react";
+import { ArrowLeft, Mail, CheckCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
+import { authApi } from "@/lib/api";
 
 export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      await authApi.forgotPassword(email);
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
       <motion.div
@@ -21,124 +46,131 @@ export default function ForgotPasswordPage() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring" }}
-              className="mx-auto w-16 h-16 rounded-full bg-yellow-500/10 flex items-center justify-center mb-4"
+              className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4"
             >
-              <Construction className="w-8 h-8 text-yellow-500" />
+              <Mail className="w-6 h-6 text-primary" />
             </motion.div>
-            <CardTitle className="text-2xl font-bold">Password Reset</CardTitle>
+            <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
             <CardDescription>
-              This feature is currently under construction
+              Enter your email to receive a password reset token
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Under Construction Banner */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg"
-            >
-              <div className="flex items-start gap-3">
-                <Wrench className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h3 className="font-medium text-yellow-600 dark:text-yellow-400 mb-1">
-                    Feature Under Development
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    We&apos;re working hard to bring you a secure password reset feature.
-                    This functionality will be available soon.
-                  </p>
+          <CardContent>
+            {submitted ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-4"
+              >
+                <div className="flex items-start gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-green-600 dark:text-green-400 mb-1">
+                      Check Server Logs
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      If an account exists for <strong>{email}</strong>, a reset token has been generated.
+                      Check the backend server logs for the token, then use it on the{" "}
+                      <Link href="/reset-password" className="text-primary hover:underline">
+                        reset password page
+                      </Link>.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
 
-            {/* What to expect */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="space-y-3"
-            >
-              <h4 className="text-sm font-medium">Coming Soon:</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-primary" />
-                  Email-based password reset link
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  </div>
-                  Secure token verification
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  </div>
-                  Password strength validation
-                </li>
-              </ul>
-            </motion.div>
+                <div className="pt-2 space-y-2">
+                  <Link href="/reset-password">
+                    <Button variant="gradient" className="w-full">
+                      Enter Reset Token
+                    </Button>
+                  </Link>
+                  <Link href="/login">
+                    <Button variant="outline" className="w-full">
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back to Sign In
+                    </Button>
+                  </Link>
+                </div>
+              </motion.div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="flex items-center gap-2 p-3 text-sm text-destructive bg-destructive/10 rounded-lg"
+                  >
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>{error}</span>
+                  </motion.div>
+                )}
 
-            {/* Progress indicator */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="space-y-2"
-            >
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Development Progress</span>
-                <span>In Progress</span>
-              </div>
-              <div className="h-2 bg-secondary rounded-full overflow-hidden">
                 <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: "45%" }}
-                  transition={{ delay: 0.6, duration: 1, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-primary to-blue-400 rounded-full"
-                />
-              </div>
-            </motion.div>
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="space-y-2"
+                >
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+                </motion.div>
 
-            {/* Alternative Help */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="p-4 bg-secondary/50 rounded-lg"
-            >
-              <h4 className="text-sm font-medium mb-2">Need Help Now?</h4>
-              <p className="text-sm text-muted-foreground">
-                If you&apos;ve forgotten your password and need immediate assistance, please contact our support team at{" "}
-                <a href="mailto:support@eclipseurl.com" className="text-primary hover:underline">
-                  support@eclipseurl.com
-                </a>
-              </p>
-            </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <Button
+                    type="submit"
+                    variant="gradient"
+                    className="w-full"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Spinner size="sm" className="mr-2" />
+                        Sending...
+                      </>
+                    ) : (
+                      "Send Reset Token"
+                    )}
+                  </Button>
+                </motion.div>
 
-            {/* Back to Login */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-              className="pt-4"
-            >
-              <Link href="/login">
-                <Button variant="outline" className="w-full">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Sign In
-                </Button>
-              </Link>
-            </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="pt-2"
+                >
+                  <Link href="/login">
+                    <Button variant="outline" className="w-full">
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back to Sign In
+                    </Button>
+                  </Link>
+                </motion.div>
+              </form>
+            )}
           </CardContent>
         </Card>
 
-        {/* Additional Info */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.5 }}
           className="text-center text-sm text-muted-foreground mt-6"
         >
           Don&apos;t have an account?{" "}

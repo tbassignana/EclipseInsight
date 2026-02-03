@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, status, Request
 from fastapi.responses import RedirectResponse, Response
@@ -5,6 +6,8 @@ from fastapi.responses import RedirectResponse, Response
 from app.services.url import get_short_url_by_code
 from app.services.click import log_click
 from app.services.preview import preview_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     tags=["Redirect"],
@@ -68,7 +71,7 @@ async def redirect_to_url(short_code: str, request: Request):
             referrer=referrer
         )
     except Exception:
-        pass  # Don't fail redirect if logging fails
+        logger.exception("Click logging failed for %s", short_code)
 
     # 302 redirect (not 301) to ensure we always track clicks
     return RedirectResponse(

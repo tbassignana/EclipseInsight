@@ -267,6 +267,81 @@ class TestDeleteURLEndpoint:
                 assert response.status_code == 404
 
 
+class TestUpdateURLEndpoint:
+    """Tests for updating URLs."""
+
+    @pytest.mark.asyncio
+    async def test_update_url_success(self, mock_user, auth_token, mock_short_url):
+        """Test successful URL update."""
+        mock_short_url.original_url = "https://updated.com"
+        mock_short_url.save = AsyncMock()
+
+        with patch('app.core.security.User.find_one', new_callable=AsyncMock) as mock_find:
+            with patch('app.api.urls.update_short_url', new_callable=AsyncMock) as mock_update:
+                mock_find.return_value = mock_user
+                mock_update.return_value = mock_short_url
+
+                transport = ASGITransport(app=app)
+                async with AsyncClient(transport=transport, base_url="http://test") as client:
+                    response = await client.patch(
+                        "/api/v1/urls/abc123x",
+                        json={"original_url": "https://updated.com"},
+                        headers={"Authorization": f"Bearer {auth_token}"}
+                    )
+
+                assert response.status_code == 200
+                data = response.json()
+                assert data["original_url"] == "https://updated.com"
+
+    @pytest.mark.asyncio
+    async def test_update_url_not_found(self, mock_user, auth_token):
+        """Test updating a non-existent URL."""
+        with patch('app.core.security.User.find_one', new_callable=AsyncMock) as mock_find:
+            with patch('app.api.urls.update_short_url', new_callable=AsyncMock) as mock_update:
+                mock_find.return_value = mock_user
+                mock_update.return_value = None
+
+                transport = ASGITransport(app=app)
+                async with AsyncClient(transport=transport, base_url="http://test") as client:
+                    response = await client.patch(
+                        "/api/v1/urls/nonexistent",
+                        json={"original_url": "https://updated.com"},
+                        headers={"Authorization": f"Bearer {auth_token}"}
+                    )
+
+                assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_update_url_invalid_alias(self, mock_user, auth_token):
+        """Test updating with an invalid alias."""
+        with patch('app.core.security.User.find_one', new_callable=AsyncMock) as mock_find:
+            with patch('app.api.urls.update_short_url', new_callable=AsyncMock) as mock_update:
+                mock_find.return_value = mock_user
+                mock_update.side_effect = ValueError("Invalid custom alias format")
+
+                transport = ASGITransport(app=app)
+                async with AsyncClient(transport=transport, base_url="http://test") as client:
+                    response = await client.patch(
+                        "/api/v1/urls/abc123x",
+                        json={"custom_alias": "ab"},
+                        headers={"Authorization": f"Bearer {auth_token}"}
+                    )
+
+                assert response.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_update_url_without_auth(self):
+        """Test that updating requires authentication."""
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.patch(
+                "/api/v1/urls/abc123x",
+                json={"original_url": "https://updated.com"}
+            )
+
+        assert response.status_code == 401
+
+
 class TestPreviewEndpoint:
     """Tests for URL preview fetching."""
 

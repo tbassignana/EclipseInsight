@@ -22,6 +22,8 @@ class User(Document):
     is_admin: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = None
+    reset_token: Optional[str] = None
+    reset_token_expires: Optional[datetime] = None
 
     class Settings:
         name = "users"

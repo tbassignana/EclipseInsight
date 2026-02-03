@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from typing import Optional
 import re
@@ -5,6 +6,8 @@ import re
 from app.models.click import ClickLog
 from app.models.url import ShortURL
 from app.core.database import get_redis
+
+logger = logging.getLogger(__name__)
 
 
 def parse_user_agent(user_agent: str) -> dict:
@@ -91,7 +94,7 @@ async def log_click(
             # Set expiry for daily counter (24 hours)
             await redis.expire(f"clicks:{short_url.short_code}:today", 86400)
     except Exception:
-        pass  # Redis errors shouldn't break the main flow
+        logger.exception("Redis click counter update failed for %s", short_url.short_code)
 
     return click_log
 
@@ -105,7 +108,7 @@ async def get_click_count(short_code: str) -> int:
             if count:
                 return int(count)
     except Exception:
-        pass
+        logger.exception("Redis click count lookup failed for %s", short_code)
 
     # Fallback to database query
     from app.models.url import ShortURL

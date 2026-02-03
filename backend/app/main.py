@@ -12,7 +12,11 @@ from app.core.database import (
     connect_to_redis,
     close_redis_connection
 )
+from app.core.logging import setup_logging, validate_settings
 
+
+# Initialize logging before anything else
+setup_logging()
 
 # Initialize rate limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -22,6 +26,7 @@ limiter = Limiter(key_func=get_remote_address)
 async def lifespan(app: FastAPI):
     """Manage application lifecycle - startup and shutdown."""
     # Startup
+    validate_settings()
     await connect_to_mongo()
     await connect_to_redis()
     yield

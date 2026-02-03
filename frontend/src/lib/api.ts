@@ -75,6 +75,18 @@ export const authApi = {
     apiRequest<{ id: string; email: string; is_admin: boolean }>("/auth/me", {
       token,
     }),
+
+  forgotPassword: (email: string) =>
+    apiRequest<{ message: string }>("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+
+  resetPassword: (token: string, newPassword: string) =>
+    apiRequest<{ message: string }>("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, new_password: newPassword }),
+    }),
 };
 
 // URL API
@@ -119,6 +131,17 @@ export const urlApi = {
       clicks_by_device: Array<{ device: string; count: number }>;
       clicks_over_time: Array<{ date: string; count: number }>;
     }>(`/urls/${shortCode}/stats`, { token }),
+
+  update: (
+    shortCode: string,
+    data: { original_url?: string; custom_alias?: string; expiration_days?: number },
+    token: string
+  ) =>
+    apiRequest<URLResponse>(`/urls/${shortCode}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+      token,
+    }),
 
   delete: (shortCode: string, token: string) =>
     apiRequest<{ message: string }>(`/urls/${shortCode}`, {

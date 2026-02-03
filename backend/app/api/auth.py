@@ -5,8 +5,8 @@ from slowapi.util import get_remote_address
 
 from app.core.config import settings
 from app.core.security import create_access_token, get_current_user
-from app.schemas.user import UserCreate, UserLogin, UserResponse, Token
-from app.services.auth import create_user, get_user_by_email, authenticate_user
+from app.schemas.user import UserCreate, UserLogin, UserResponse, Token, ForgotPasswordRequest, ResetPasswordRequest
+from app.services.auth import create_user, get_user_by_email, authenticate_user, create_password_reset_token, reset_password
 from app.models.user import User
 
 router = APIRouter(
@@ -98,3 +98,32 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
         is_admin=current_user.is_admin,
         created_at=current_user.created_at
     )
+
+
+@router.post("/forgot-password")
+async def forgot_password(request: Request, data: ForgotPasswordRequest):
+    """
+    Request a password reset token.
+
+    If the email exists, a reset token is generated and logged to the server console.
+    The response is always the same to avoid revealing whether the email is registered.
+    """
+    await create_password_reset_token(data.email)
+    return {"message": "If an account with that email exists, a reset token has been generated. Check server logs."}
+
+
+@router.post("/reset-password")
+async def reset_password_endpoint(data: ResetPasswordRequest):
+    """
+    Reset password using a valid reset token.
+
+    - **token**: The reset token from the forgot-password step
+    - **new_password**: New password (minimum 8 characters)
+    """
+    success = await reset_password(data.token, data.new_password)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token"
+        )
+    return {"message": "Password has been reset successfully"}

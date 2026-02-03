@@ -1,3 +1,4 @@
+import logging
 import string
 import secrets
 import re
@@ -7,10 +8,12 @@ import aiohttp
 from bs4 import BeautifulSoup
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 from app.models.url import ShortURL
 from app.models.click import ClickLog
 from app.models.user import User
-from app.schemas.url import URLCreate, URLPreview, URLStats
+from app.schemas.url import URLCreate, URLUpdate, URLPreview, URLStats
 from app.services.ai import ai_service
 
 # Base62 character set for URL-safe short codes
@@ -82,7 +85,7 @@ async def fetch_url_preview(url: str) -> URLPreview:
                     preview.image = og_image.get('content', '')
 
     except Exception:
-        pass  # Return partial preview on error
+        logger.exception("Failed to fetch preview for %s", url)
 
     return preview
 
@@ -142,7 +145,7 @@ async def create_short_url(
             preview_description = preview.description
             preview_image = preview.image
         except Exception:
-            pass  # Continue without preview
+            logger.exception("Preview fetch failed during URL creation for %s", url_data.original_url)
 
     # Prepare AI fields
     tags = []
@@ -193,6 +196,41 @@ async def get_user_urls(user: User, skip: int = 0, limit: int = 100) -> list[Sho
     return await ShortURL.find(
         {"user.$id": user.id, "is_active": True}
     ).skip(skip).limit(limit).to_list()
+
+
+async def update_short_url(short_code: str, update_data: URLUpdate, user: User) -> Optional[ShortURL]:
+    """Update a short URL's original_url, custom_alias, or expiration. Returns updated URL or None."""
+    short_url = await get_short_url_by_code(short_code)
+    if not short_url or not short_url.is_active:
+        return None
+
+    # Check ownership (unless admin)
+    if not user.is_admin:
+        user_ref = short_url.user
+        user_id = user_ref.ref.id if hasattr(user_ref, 'ref') else getattr(user_ref, 'id', None)
+        if user_id != user.id:
+            return None
+
+    fields = update_data.model_dump(exclude_unset=True)
+
+    if "original_url" in fields:
+        short_url.original_url = fields["original_url"]
+
+    if "custom_alias" in fields:
+        alias = fields["custom_alias"]
+        if not is_valid_custom_alias(alias):
+            raise ValueError("Invalid custom alias format")
+        if alias != short_url.short_code and not await is_short_code_available(alias):
+            raise ValueError("Custom alias is already taken")
+        short_url.short_code = alias
+        short_url.custom_alias = alias
+
+    if "expiration_days" in fields:
+        short_url.expiration = datetime.now(timezone.utc) + timedelta(days=fields["expiration_days"])
+
+    short_url.updated_at = datetime.now(timezone.utc)
+    await short_url.save()
+    return short_url
 
 
 async def delete_short_url(short_code: str, user: User) -> bool:

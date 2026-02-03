@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { urlApi } from "@/lib/api";
 import { formatDate, formatAbsoluteDate, formatNumber, copyToClipboard } from "@/lib/utils";
@@ -21,6 +22,9 @@ import {
   Search,
   AlertCircle,
   Brain,
+  Pencil,
+  X,
+  Save,
 } from "lucide-react";
 import type { ShortURL } from "@/types";
 
@@ -31,6 +35,11 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editUrl, setEditUrl] = useState("");
+  const [editAlias, setEditAlias] = useState("");
+  const [editExpDays, setEditExpDays] = useState("");
+  const [editLoading, setEditLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -93,6 +102,48 @@ export default function DashboardPage() {
       setError(err instanceof Error ? err.message : "Failed to delete URL");
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const startEditing = (url: ShortURL) => {
+    setEditingId(url.id);
+    setEditUrl(url.original_url);
+    setEditAlias(url.short_code);
+    setEditExpDays("");
+    setError(null);
+  };
+
+  const handleEdit = async (shortCode: string, id: string) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    setEditLoading(true);
+    setError(null);
+    try {
+      const data: Record<string, string | number> = {};
+      const current = urls.find((u) => u.id === id);
+      if (editUrl !== current?.original_url) data.original_url = editUrl;
+      if (editAlias !== current?.short_code) data.custom_alias = editAlias;
+      if (editExpDays) data.expiration_days = parseInt(editExpDays, 10);
+
+      if (Object.keys(data).length === 0) {
+        setEditingId(null);
+        return;
+      }
+
+      const updated = await urlApi.update(shortCode, data, token);
+      setUrls(urls.map((u) => u.id === id ? {
+        ...u,
+        original_url: updated.original_url,
+        short_code: updated.short_code,
+        short_url: updated.short_url,
+        expiration: updated.expiration,
+      } : u));
+      setEditingId(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update URL");
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -346,6 +397,13 @@ export default function DashboardPage() {
                             <Button
                               variant="outline"
                               size="sm"
+                              onClick={() => startEditing(url)}
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => window.open(url.short_url, "_blank")}
                             >
                               <ExternalLink className="w-4 h-4" />
@@ -365,6 +423,72 @@ export default function DashboardPage() {
                             </Button>
                           </div>
                         </div>
+
+                        {/* Inline Edit Form */}
+                        {editingId === url.id && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mt-4 pt-4 border-t space-y-3"
+                          >
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                              <div className="space-y-1">
+                                <Label htmlFor={`edit-url-${url.id}`} className="text-xs">Destination URL</Label>
+                                <Input
+                                  id={`edit-url-${url.id}`}
+                                  value={editUrl}
+                                  onChange={(e) => setEditUrl(e.target.value)}
+                                  placeholder="https://example.com"
+                                  disabled={editLoading}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label htmlFor={`edit-alias-${url.id}`} className="text-xs">Short Code / Alias</Label>
+                                <Input
+                                  id={`edit-alias-${url.id}`}
+                                  value={editAlias}
+                                  onChange={(e) => setEditAlias(e.target.value)}
+                                  placeholder="my-alias"
+                                  disabled={editLoading}
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label htmlFor={`edit-exp-${url.id}`} className="text-xs">New Expiration (days)</Label>
+                                <Input
+                                  id={`edit-exp-${url.id}`}
+                                  type="number"
+                                  min={1}
+                                  max={365}
+                                  value={editExpDays}
+                                  onChange={(e) => setEditExpDays(e.target.value)}
+                                  placeholder="e.g. 30"
+                                  disabled={editLoading}
+                                />
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="gradient"
+                                onClick={() => handleEdit(url.short_code, url.id)}
+                                disabled={editLoading}
+                              >
+                                {editLoading ? <Spinner size="sm" className="mr-1" /> : <Save className="w-4 h-4 mr-1" />}
+                                Save
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setEditingId(null)}
+                                disabled={editLoading}
+                              >
+                                <X className="w-4 h-4 mr-1" />
+                                Cancel
+                              </Button>
+                            </div>
+                          </motion.div>
+                        )}
                       </motion.div>
                     ))}
                   </AnimatePresence>

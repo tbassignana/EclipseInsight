@@ -226,3 +226,119 @@ class TestJWTTokens:
 
         decoded = decode_access_token("invalid_token_string")
         assert decoded is None
+
+
+class TestPasswordReset:
+    """Tests for password reset endpoints."""
+
+    @pytest.mark.asyncio
+    async def test_forgot_password_existing_email(self):
+        """Test forgot password with an existing email generates a token."""
+        mock_user = MagicMock(spec=User)
+        mock_user.email = "test@example.com"
+        mock_user.reset_token = None
+        mock_user.reset_token_expires = None
+        mock_user.save = AsyncMock()
+
+        with patch('app.services.auth.get_user_by_email', new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = mock_user
+
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://test") as client:
+                response = await client.post(
+                    "/api/v1/auth/forgot-password",
+                    json={"email": "test@example.com"}
+                )
+
+            assert response.status_code == 200
+            assert "reset token has been generated" in response.json()["message"]
+            mock_user.save.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_forgot_password_nonexistent_email(self):
+        """Test forgot password with non-existent email still returns 200 (no information leak)."""
+        with patch('app.services.auth.get_user_by_email', new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = None
+
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://test") as client:
+                response = await client.post(
+                    "/api/v1/auth/forgot-password",
+                    json={"email": "nobody@example.com"}
+                )
+
+            assert response.status_code == 200
+            assert "reset token has been generated" in response.json()["message"]
+
+    @pytest.mark.asyncio
+    async def test_reset_password_success(self):
+        """Test resetting password with a valid token."""
+        mock_user = MagicMock(spec=User)
+        mock_user.reset_token = "valid_token"
+        mock_user.reset_token_expires = datetime(2099, 1, 1, tzinfo=timezone.utc)
+        mock_user.hashed_password = "old_hash"
+        mock_user.save = AsyncMock()
+
+        with patch('app.services.auth.User.find_one', new_callable=AsyncMock) as mock_find:
+            mock_find.return_value = mock_user
+
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://test") as client:
+                response = await client.post(
+                    "/api/v1/auth/reset-password",
+                    json={"token": "valid_token", "new_password": "newsecurepassword"}
+                )
+
+            assert response.status_code == 200
+            assert "successfully" in response.json()["message"]
+            assert mock_user.reset_token is None
+            assert mock_user.reset_token_expires is None
+
+    @pytest.mark.asyncio
+    async def test_reset_password_invalid_token(self):
+        """Test resetting password with an invalid token."""
+        with patch('app.services.auth.User.find_one', new_callable=AsyncMock) as mock_find:
+            mock_find.return_value = None
+
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://test") as client:
+                response = await client.post(
+                    "/api/v1/auth/reset-password",
+                    json={"token": "invalid_token", "new_password": "newsecurepassword"}
+                )
+
+            assert response.status_code == 400
+            assert "Invalid or expired" in response.json()["detail"]
+
+    @pytest.mark.asyncio
+    async def test_reset_password_expired_token(self):
+        """Test resetting password with an expired token."""
+        mock_user = MagicMock(spec=User)
+        mock_user.reset_token = "expired_token"
+        mock_user.reset_token_expires = datetime(2020, 1, 1, tzinfo=timezone.utc)
+        mock_user.save = AsyncMock()
+
+        with patch('app.services.auth.User.find_one', new_callable=AsyncMock) as mock_find:
+            mock_find.return_value = mock_user
+
+            transport = ASGITransport(app=app)
+            async with AsyncClient(transport=transport, base_url="http://test") as client:
+                response = await client.post(
+                    "/api/v1/auth/reset-password",
+                    json={"token": "expired_token", "new_password": "newsecurepassword"}
+                )
+
+            assert response.status_code == 400
+            assert "Invalid or expired" in response.json()["detail"]
+
+    @pytest.mark.asyncio
+    async def test_reset_password_short_password(self):
+        """Test resetting password with a password that is too short."""
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            response = await client.post(
+                "/api/v1/auth/reset-password",
+                json={"token": "any_token", "new_password": "short"}
+            )
+
+        assert response.status_code == 422

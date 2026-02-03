@@ -4,11 +4,12 @@ from slowapi.util import get_remote_address
 
 from app.core.config import settings
 from app.core.security import get_current_user
-from app.schemas.url import URLCreate, URLResponse, URLPreview, URLStats, AIAnalysis
+from app.schemas.url import URLCreate, URLUpdate, URLResponse, URLPreview, URLStats, AIAnalysis
 from app.services.url import (
     create_short_url,
     get_short_url_by_code,
     get_user_urls,
+    update_short_url,
     delete_short_url,
     fetch_url_preview as fetch_preview_service,
     get_url_stats
@@ -165,6 +166,38 @@ async def get_url_details(
             )
 
     return build_url_response(short_url)
+
+
+@router.patch("/{short_code}", response_model=URLResponse)
+async def update_url(
+    short_code: str,
+    update_data: URLUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update a shortened URL's destination, alias, or expiration.
+
+    - **original_url**: New destination URL
+    - **custom_alias**: New custom alias (4-20 chars)
+    - **expiration_days**: New expiration in days from now (1-365)
+
+    Only provided fields are updated; omitted fields remain unchanged.
+    """
+    try:
+        updated = await update_short_url(short_code, update_data, current_user)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="URL not found or not authorized"
+        )
+
+    return build_url_response(updated)
 
 
 @router.delete("/{short_code}", status_code=status.HTTP_200_OK)

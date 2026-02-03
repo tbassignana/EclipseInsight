@@ -66,6 +66,23 @@ class URLStats(BaseModel):
     clicks_over_time: list[dict]
 
 
+class URLUpdate(BaseModel):
+    original_url: Optional[str] = Field(None, description="New destination URL")
+    custom_alias: Optional[str] = Field(
+        None,
+        min_length=4,
+        max_length=20,
+        pattern="^[a-zA-Z0-9_-]+$",
+        description="New custom alias"
+    )
+    expiration_days: Optional[int] = Field(
+        None,
+        ge=1,
+        le=365,
+        description="New expiration in days from now"
+    )
+
+
 class URLPreview(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
