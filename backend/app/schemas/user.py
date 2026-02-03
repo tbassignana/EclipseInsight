@@ -1,6 +1,6 @@
-from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
-from typing import Optional
+
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserCreate(BaseModel):
@@ -27,8 +27,8 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    email: Optional[str] = None
-    user_id: Optional[str] = None
+    email: str | None = None
+    user_id: str | None = None
 
 
 class ForgotPasswordRequest(BaseModel):

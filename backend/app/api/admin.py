@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from datetime import UTC
+
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.security import get_current_active_admin
-from app.services.analytics import get_top_urls
-from app.services.url import get_short_url_by_code, delete_short_url
 from app.models.user import User
+from app.services.analytics import get_top_urls
+from app.services.url import delete_short_url, get_short_url_by_code
 
 router = APIRouter(
     prefix="/admin",
@@ -14,8 +16,7 @@ router = APIRouter(
 
 @router.get("/top-urls")
 async def get_top_urls_list(
-    limit: int = 10,
-    current_admin: User = Depends(get_current_active_admin)
+    limit: int = 10, current_admin: User = Depends(get_current_active_admin)
 ):
     """
     Get top-performing URLs by click count.
@@ -34,8 +35,7 @@ async def get_top_urls_list(
 
 @router.delete("/urls/{short_code}")
 async def admin_delete_url(
-    short_code: str,
-    current_admin: User = Depends(get_current_active_admin)
+    short_code: str, current_admin: User = Depends(get_current_active_admin)
 ):
     """
     Remove a shortened URL from the platform.
@@ -48,26 +48,20 @@ async def admin_delete_url(
     short_url = await get_short_url_by_code(short_code)
 
     if not short_url:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="URL not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="URL not found")
 
     success = await delete_short_url(short_code, current_admin)
 
     if not success:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete URL"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete URL"
         )
 
     return {"message": "URL deleted successfully", "short_code": short_code}
 
 
 @router.get("/stats/summary")
-async def get_admin_summary(
-    current_admin: User = Depends(get_current_active_admin)
-):
+async def get_admin_summary(current_admin: User = Depends(get_current_active_admin)):
     """
     Get EclipseInsight platform overview statistics.
 
@@ -75,12 +69,13 @@ async def get_admin_summary(
     user registrations, and activity trends for today and the past week.
     Useful for monitoring platform health and growth.
     """
-    from app.models.url import ShortURL
-    from app.models.click import ClickLog
-    from app.models.user import User as UserModel
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timedelta
 
-    now = datetime.now(timezone.utc)
+    from app.models.click import ClickLog
+    from app.models.url import ShortURL
+    from app.models.user import User as UserModel
+
+    now = datetime.now(UTC)
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     week_start = today_start - timedelta(days=7)
 
@@ -104,5 +99,5 @@ async def get_admin_summary(
         "urls_today": urls_today,
         "clicks_today": clicks_today,
         "urls_this_week": urls_this_week,
-        "clicks_this_week": clicks_this_week
+        "clicks_this_week": clicks_this_week,
     }

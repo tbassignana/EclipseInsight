@@ -1,22 +1,16 @@
 import logging
-from datetime import datetime, timezone
-from typing import Optional
-import re
+from datetime import UTC, datetime
 
+from app.core.database import get_redis
 from app.models.click import ClickLog
 from app.models.url import ShortURL
-from app.core.database import get_redis
 
 logger = logging.getLogger(__name__)
 
 
 def parse_user_agent(user_agent: str) -> dict:
     """Parse user agent string to extract device, browser, and OS info."""
-    result = {
-        "device_type": "desktop",
-        "browser": "unknown",
-        "os": "unknown"
-    }
+    result = {"device_type": "desktop", "browser": "unknown", "os": "unknown"}
 
     if not user_agent:
         return result
@@ -59,9 +53,9 @@ def parse_user_agent(user_agent: str) -> dict:
 
 async def log_click(
     short_url: ShortURL,
-    ip_address: Optional[str] = None,
-    user_agent: Optional[str] = None,
-    referrer: Optional[str] = None
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+    referrer: str | None = None,
 ) -> ClickLog:
     """Log a click event for analytics."""
     # Parse user agent for device info
@@ -75,14 +69,14 @@ async def log_click(
         device_type=ua_info["device_type"],
         browser=ua_info["browser"],
         os=ua_info["os"],
-        timestamp=datetime.now(timezone.utc)
+        timestamp=datetime.now(UTC),
     )
 
     await click_log.insert()
 
     # Update click count in the URL document
     short_url.clicks += 1
-    short_url.updated_at = datetime.now(timezone.utc)
+    short_url.updated_at = datetime.now(UTC)
     await short_url.save()
 
     # Also increment in Redis for real-time analytics
@@ -112,5 +106,6 @@ async def get_click_count(short_code: str) -> int:
 
     # Fallback to database query
     from app.models.url import ShortURL
+
     url = await ShortURL.find_one({"short_code": short_code})
     return url.clicks if url else 0

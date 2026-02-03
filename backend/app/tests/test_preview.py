@@ -1,7 +1,8 @@
 """Tests for URL preview screenshot service."""
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 from bson import ObjectId
 
 from app.services.preview import PreviewService
@@ -23,7 +24,7 @@ class TestPreviewService:
         service = PreviewService()
 
         # Mock browser to return None
-        with patch.object(service, '_get_browser', new_callable=AsyncMock) as mock_get:
+        with patch.object(service, "_get_browser", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = None
             result = await service.generate_screenshot("https://example.com")
             assert result is None
@@ -40,7 +41,7 @@ class TestPreviewService:
         mock_browser = AsyncMock()
         mock_browser.newPage = AsyncMock(return_value=mock_page)
 
-        with patch.object(service, '_get_browser', new_callable=AsyncMock) as mock_get:
+        with patch.object(service, "_get_browser", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_browser
 
             result = await service.generate_screenshot("https://example.com")
@@ -62,7 +63,7 @@ class TestPreviewService:
         mock_browser = AsyncMock()
         mock_browser.newPage = AsyncMock(return_value=mock_page)
 
-        with patch.object(service, '_get_browser', new_callable=AsyncMock) as mock_get:
+        with patch.object(service, "_get_browser", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_browser
 
             result = await service.generate_screenshot("https://example.com")
@@ -78,14 +79,10 @@ class TestPreviewService:
         mock_bucket = AsyncMock()
         mock_bucket.upload_from_stream = AsyncMock(return_value=ObjectId())
 
-        with patch.object(service, '_get_db', new_callable=AsyncMock) as mock_db:
+        with patch.object(service, "_get_db", new_callable=AsyncMock) as mock_db:
             mock_db.return_value = mock_bucket
 
-            result = await service.store_screenshot(
-                b"png_data",
-                "abc123",
-                "https://example.com"
-            )
+            result = await service.store_screenshot(b"png_data", "abc123", "https://example.com")
 
             assert result is not None
             mock_bucket.upload_from_stream.assert_called_once()
@@ -96,18 +93,12 @@ class TestPreviewService:
         service = PreviewService()
 
         mock_bucket = AsyncMock()
-        mock_bucket.upload_from_stream = AsyncMock(
-            side_effect=Exception("Storage failed")
-        )
+        mock_bucket.upload_from_stream = AsyncMock(side_effect=Exception("Storage failed"))
 
-        with patch.object(service, '_get_db', new_callable=AsyncMock) as mock_db:
+        with patch.object(service, "_get_db", new_callable=AsyncMock) as mock_db:
             mock_db.return_value = mock_bucket
 
-            result = await service.store_screenshot(
-                b"png_data",
-                "abc123",
-                "https://example.com"
-            )
+            result = await service.store_screenshot(b"png_data", "abc123", "https://example.com")
 
             assert result is None
 
@@ -122,7 +113,7 @@ class TestPreviewService:
         mock_bucket = AsyncMock()
         mock_bucket.open_download_stream = AsyncMock(return_value=mock_stream)
 
-        with patch.object(service, '_get_db', new_callable=AsyncMock) as mock_db:
+        with patch.object(service, "_get_db", new_callable=AsyncMock) as mock_db:
             mock_db.return_value = mock_bucket
 
             result = await service.get_screenshot(str(ObjectId()))
@@ -135,11 +126,9 @@ class TestPreviewService:
         service = PreviewService()
 
         mock_bucket = AsyncMock()
-        mock_bucket.open_download_stream = AsyncMock(
-            side_effect=Exception("File not found")
-        )
+        mock_bucket.open_download_stream = AsyncMock(side_effect=Exception("File not found"))
 
-        with patch.object(service, '_get_db', new_callable=AsyncMock) as mock_db:
+        with patch.object(service, "_get_db", new_callable=AsyncMock) as mock_db:
             mock_db.return_value = mock_bucket
 
             result = await service.get_screenshot(str(ObjectId()))
@@ -154,7 +143,7 @@ class TestPreviewService:
         mock_bucket = AsyncMock()
         mock_bucket.delete = AsyncMock()
 
-        with patch.object(service, '_get_db', new_callable=AsyncMock) as mock_db:
+        with patch.object(service, "_get_db", new_callable=AsyncMock) as mock_db:
             mock_db.return_value = mock_bucket
 
             result = await service.delete_screenshot(str(ObjectId()))
@@ -170,7 +159,7 @@ class TestPreviewService:
         mock_bucket = AsyncMock()
         mock_bucket.delete = AsyncMock(side_effect=Exception("Delete failed"))
 
-        with patch.object(service, '_get_db', new_callable=AsyncMock) as mock_db:
+        with patch.object(service, "_get_db", new_callable=AsyncMock) as mock_db:
             mock_db.return_value = mock_bucket
 
             result = await service.delete_screenshot(str(ObjectId()))
@@ -184,19 +173,12 @@ class TestPreviewService:
 
         file_id = str(ObjectId())
 
-        with patch.object(
-            service, 'generate_screenshot', new_callable=AsyncMock
-        ) as mock_gen:
-            with patch.object(
-                service, 'store_screenshot', new_callable=AsyncMock
-            ) as mock_store:
+        with patch.object(service, "generate_screenshot", new_callable=AsyncMock) as mock_gen:
+            with patch.object(service, "store_screenshot", new_callable=AsyncMock) as mock_store:
                 mock_gen.return_value = b"png_data"
                 mock_store.return_value = file_id
 
-                result = await service.generate_and_store(
-                    "https://example.com",
-                    "abc123"
-                )
+                result = await service.generate_and_store("https://example.com", "abc123")
 
                 assert result == file_id
                 mock_gen.assert_called_once()
@@ -207,14 +189,9 @@ class TestPreviewService:
         """Test generate_and_store when screenshot generation fails."""
         service = PreviewService()
 
-        with patch.object(
-            service, 'generate_screenshot', new_callable=AsyncMock
-        ) as mock_gen:
+        with patch.object(service, "generate_screenshot", new_callable=AsyncMock) as mock_gen:
             mock_gen.return_value = None
 
-            result = await service.generate_and_store(
-                "https://example.com",
-                "abc123"
-            )
+            result = await service.generate_and_store("https://example.com", "abc123")
 
             assert result is None

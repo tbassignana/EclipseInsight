@@ -1,13 +1,15 @@
 """Integration tests that exercise full API flows end-to-end (with mocked DB)."""
-import pytest
-from httpx import AsyncClient, ASGITransport
-from unittest.mock import AsyncMock, patch, MagicMock
-from datetime import datetime, timezone
 
-from app.main import app
-from app.models.user import User
-from app.models.url import ShortURL
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+from httpx import ASGITransport, AsyncClient
+
 from app.core.security import create_access_token
+from app.main import app
+from app.models.url import ShortURL
+from app.models.user import User
 
 
 def _mock_user(email="integration@test.com", is_admin=False):
@@ -17,7 +19,7 @@ def _mock_user(email="integration@test.com", is_admin=False):
     user.hashed_password = "$2b$12$placeholder"
     user.is_active = True
     user.is_admin = is_admin
-    user.created_at = datetime.now(timezone.utc)
+    user.created_at = datetime.now(UTC)
     user.reset_token = None
     user.reset_token_expires = None
     user.save = AsyncMock()
@@ -33,7 +35,7 @@ def _mock_short_url(user, short_code="intTest"):
     url.clicks = 5
     url.is_active = True
     url.expiration = None
-    url.created_at = datetime.now(timezone.utc)
+    url.created_at = datetime.now(UTC)
     url.updated_at = None
     url.custom_alias = None
     url.preview_title = "Example"
@@ -48,7 +50,7 @@ def _mock_short_url(user, short_code="intTest"):
     url.suggested_alias = "test-page"
     url.is_toxic = False
     url.ai_analyzed = True
-    url.ai_analyzed_at = datetime.now(timezone.utc)
+    url.ai_analyzed_at = datetime.now(UTC)
     url.save = AsyncMock()
     return url
 
@@ -153,6 +155,7 @@ class TestShortenAndStatsFlow:
 
             # Step 4: Stats
             from app.schemas.url import URLStats
+
             mock_stats.return_value = URLStats(
                 short_code="intTest",
                 original_url="https://example.com/integration",
@@ -221,7 +224,7 @@ class TestPasswordResetFlow:
             assert token_value is not None
 
             # Step 2: Reset password with token
-            user.reset_token_expires = datetime(2099, 1, 1, tzinfo=timezone.utc)
+            user.reset_token_expires = datetime(2099, 1, 1, tzinfo=UTC)
             mock_find_token.return_value = user
             async with AsyncClient(transport=transport, base_url="http://test") as client:
                 res = await client.post(

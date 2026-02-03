@@ -1,42 +1,36 @@
-from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class URLCreate(BaseModel):
     original_url: str = Field(..., description="The original URL to shorten")
-    custom_alias: Optional[str] = Field(
+    custom_alias: str | None = Field(
         None,
         min_length=4,
         max_length=20,
         pattern="^[a-zA-Z0-9_-]+$",
-        description="Custom alias for the short URL"
+        description="Custom alias for the short URL",
     )
-    expiration_days: Optional[int] = Field(
-        None,
-        ge=1,
-        le=365,
-        description="Number of days until URL expires"
+    expiration_days: int | None = Field(
+        None, ge=1, le=365, description="Number of days until URL expires"
     )
-    skip_ai_analysis: bool = Field(
-        False,
-        description="Skip AI content analysis"
-    )
+    skip_ai_analysis: bool = Field(False, description="Skip AI content analysis")
     use_ai_suggested_alias: bool = Field(
-        False,
-        description="Use AI-suggested alias instead of random code (if available)"
+        False, description="Use AI-suggested alias instead of random code (if available)"
     )
 
 
 class AIAnalysis(BaseModel):
     """AI analysis results for a URL."""
+
     tags: list[str] = Field(default_factory=list)
-    summary: Optional[str] = None
-    suggested_alias: Optional[str] = None
+    summary: str | None = None
+    suggested_alias: str | None = None
     is_toxic: bool = False
     analyzed: bool = False
-    analyzed_at: Optional[datetime] = None
-    error: Optional[str] = None
+    analyzed_at: datetime | None = None
+    error: str | None = None
 
 
 class URLResponse(BaseModel):
@@ -45,13 +39,13 @@ class URLResponse(BaseModel):
     short_code: str
     short_url: str
     clicks: int
-    expiration: Optional[datetime]
+    expiration: datetime | None
     created_at: datetime
-    preview_title: Optional[str] = None
-    preview_description: Optional[str] = None
-    preview_image: Optional[str] = None
+    preview_title: str | None = None
+    preview_description: str | None = None
+    preview_image: str | None = None
     # AI Analysis fields
-    ai: Optional[AIAnalysis] = None
+    ai: AIAnalysis | None = None
 
 
 class URLStats(BaseModel):
@@ -67,24 +61,21 @@ class URLStats(BaseModel):
 
 
 class URLUpdate(BaseModel):
-    original_url: Optional[str] = Field(None, description="New destination URL")
-    custom_alias: Optional[str] = Field(
+    original_url: str | None = Field(None, description="New destination URL")
+    custom_alias: str | None = Field(
         None,
         min_length=4,
         max_length=20,
         pattern="^[a-zA-Z0-9_-]+$",
-        description="New custom alias"
+        description="New custom alias",
     )
-    expiration_days: Optional[int] = Field(
-        None,
-        ge=1,
-        le=365,
-        description="New expiration in days from now"
+    expiration_days: int | None = Field(
+        None, ge=1, le=365, description="New expiration in days from now"
     )
 
 
 class URLPreview(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    image: Optional[str] = None
+    title: str | None = None
+    description: str | None = None
+    image: str | None = None
     url: str

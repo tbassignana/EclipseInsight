@@ -1,7 +1,8 @@
-from beanie import Document, Indexed, Link
-from pydantic import Field, ConfigDict
 from datetime import datetime
-from typing import Optional
+
+from beanie import Document, Indexed, Link
+from pydantic import ConfigDict, Field
+
 from app.models.user import User
 
 
@@ -15,7 +16,7 @@ class ShortURL(Document):
                 "is_active": True,
                 "tags": ["technology", "news"],
                 "summary": "An article about technology trends",
-                "suggested_alias": "tech-trends"
+                "suggested_alias": "tech-trends",
             }
         }
     )
@@ -23,28 +24,28 @@ class ShortURL(Document):
     original_url: str
     short_code: Indexed(str, unique=True)
     user: Link[User]
-    custom_alias: Optional[str] = None
+    custom_alias: str | None = None
     clicks: int = 0
-    expiration: Optional[datetime] = None
+    expiration: datetime | None = None
     is_active: bool = True
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: Optional[datetime] = None
+    updated_at: datetime | None = None
 
     # URL Preview metadata
-    preview_title: Optional[str] = None
-    preview_description: Optional[str] = None
-    preview_image: Optional[str] = None
+    preview_title: str | None = None
+    preview_description: str | None = None
+    preview_image: str | None = None
 
     # AI Analysis fields
     tags: list[str] = Field(default_factory=list)
-    summary: Optional[str] = None
-    suggested_alias: Optional[str] = None
+    summary: str | None = None
+    suggested_alias: str | None = None
     is_toxic: bool = False
     ai_analyzed: bool = False
-    ai_analyzed_at: Optional[datetime] = None
+    ai_analyzed_at: datetime | None = None
 
     # Preview screenshot (GridFS file ID)
-    preview_screenshot_id: Optional[str] = None
+    preview_screenshot_id: str | None = None
 
     class Settings:
         name = "short_urls"

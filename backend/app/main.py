@@ -1,19 +1,20 @@
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
+from app.api import admin, analytics, auth, redirect, urls
 from app.core.config import settings
 from app.core.database import (
-    connect_to_mongo,
     close_mongo_connection,
+    close_redis_connection,
+    connect_to_mongo,
     connect_to_redis,
-    close_redis_connection
 )
 from app.core.logging import setup_logging, validate_settings
-
 
 # Initialize logging before anything else
 setup_logging()
@@ -61,7 +62,7 @@ Use `/api/v1/auth/login` to obtain a token.
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Add rate limiter to app state
@@ -85,8 +86,6 @@ async def health_check():
     return {"status": "healthy", "service": settings.APP_NAME}
 
 
-# Import and include routers
-from app.api import auth, urls, redirect, analytics, admin
 app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(urls.router, prefix=settings.API_V1_STR)
 app.include_router(analytics.router, prefix=settings.API_V1_STR)

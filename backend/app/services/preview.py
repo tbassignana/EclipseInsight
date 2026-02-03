@@ -5,12 +5,11 @@ Generates PNG screenshots of URLs and stores them in MongoDB GridFS.
 
 import asyncio
 import io
-from typing import Optional
-from datetime import datetime, timezone
 import logging
+from datetime import UTC, datetime
 
-from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
 from bson import ObjectId
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
 
 from app.core.config import settings
 
@@ -21,8 +20,8 @@ class PreviewService:
     """Service for generating and storing URL preview screenshots."""
 
     def __init__(self):
-        self._client: Optional[AsyncIOMotorClient] = None
-        self._bucket: Optional[AsyncIOMotorGridFSBucket] = None
+        self._client: AsyncIOMotorClient | None = None
+        self._bucket: AsyncIOMotorGridFSBucket | None = None
         self._browser = None
         self._browser_lock = asyncio.Lock()
 
@@ -40,15 +39,16 @@ class PreviewService:
             if self._browser is None:
                 try:
                     from pyppeteer import launch
+
                     self._browser = await launch(
                         headless=True,
                         args=[
-                            '--no-sandbox',
-                            '--disable-setuid-sandbox',
-                            '--disable-dev-shm-usage',
-                            '--disable-gpu',
-                            '--single-process'
-                        ]
+                            "--no-sandbox",
+                            "--disable-setuid-sandbox",
+                            "--disable-dev-shm-usage",
+                            "--disable-gpu",
+                            "--single-process",
+                        ],
                     )
                 except Exception as e:
                     logger.error(f"Failed to launch browser: {e}")
@@ -63,12 +63,8 @@ class PreviewService:
                 self._browser = None
 
     async def generate_screenshot(
-        self,
-        url: str,
-        width: int = 1280,
-        height: int = 720,
-        timeout: int = 30000
-    ) -> Optional[bytes]:
+        self, url: str, width: int = 1280, height: int = 720, timeout: int = 30000
+    ) -> bytes | None:
         """
         Generate a screenshot of a URL.
 
@@ -89,24 +85,15 @@ class PreviewService:
         page = None
         try:
             page = await browser.newPage()
-            await page.setViewport({'width': width, 'height': height})
+            await page.setViewport({"width": width, "height": height})
 
             # Navigate to URL
-            await page.goto(url, {
-                'waitUntil': 'networkidle2',
-                'timeout': timeout
-            })
+            await page.goto(url, {"waitUntil": "networkidle2", "timeout": timeout})
 
             # Take screenshot
-            screenshot = await page.screenshot({
-                'type': 'png',
-                'clip': {
-                    'x': 0,
-                    'y': 0,
-                    'width': width,
-                    'height': height
-                }
-            })
+            screenshot = await page.screenshot(
+                {"type": "png", "clip": {"x": 0, "y": 0, "width": width, "height": height}}
+            )
 
             return screenshot
 
@@ -119,11 +106,8 @@ class PreviewService:
                 await page.close()
 
     async def store_screenshot(
-        self,
-        screenshot_data: bytes,
-        short_code: str,
-        original_url: str
-    ) -> Optional[str]:
+        self, screenshot_data: bytes, short_code: str, original_url: str
+    ) -> str | None:
         """
         Store screenshot in MongoDB GridFS.
 
@@ -143,14 +127,12 @@ class PreviewService:
                 "short_code": short_code,
                 "original_url": original_url,
                 "content_type": "image/png",
-                "created_at": datetime.now(timezone.utc)
+                "created_at": datetime.now(UTC),
             }
 
             # Upload to GridFS
             file_id = await bucket.upload_from_stream(
-                f"preview_{short_code}.png",
-                io.BytesIO(screenshot_data),
-                metadata=metadata
+                f"preview_{short_code}.png", io.BytesIO(screenshot_data), metadata=metadata
             )
 
             return str(file_id)
@@ -159,7 +141,7 @@ class PreviewService:
             logger.error(f"Failed to store screenshot: {e}")
             return None
 
-    async def get_screenshot(self, file_id: str) -> Optional[bytes]:
+    async def get_screenshot(self, file_id: str) -> bytes | None:
         """
         Retrieve screenshot from MongoDB GridFS.
 
@@ -199,12 +181,8 @@ class PreviewService:
             return False
 
     async def generate_and_store(
-        self,
-        url: str,
-        short_code: str,
-        width: int = 1280,
-        height: int = 720
-    ) -> Optional[str]:
+        self, url: str, short_code: str, width: int = 1280, height: int = 720
+    ) -> str | None:
         """
         Generate screenshot and store it.
 

@@ -1,11 +1,12 @@
 import logging
-from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException, status, Request
+from datetime import UTC, datetime
+
+from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import RedirectResponse, Response
 
-from app.services.url import get_short_url_by_code
 from app.services.click import log_click
 from app.services.preview import preview_service
+from app.services.url import get_short_url_by_code
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +14,7 @@ router = APIRouter(
     tags=["Redirect"],
     responses={
         404: {"description": "Short URL not found"},
-        410: {"description": "URL has expired or been deactivated"}
+        410: {"description": "URL has expired or been deactivated"},
     },
 )
 
@@ -22,10 +23,10 @@ def is_expired(expiration: datetime | None) -> bool:
     """Check if a datetime has expired, handling both naive and aware datetimes."""
     if not expiration:
         return False
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     # If expiration is naive, treat it as UTC
     if expiration.tzinfo is None:
-        expiration = expiration.replace(tzinfo=timezone.utc)
+        expiration = expiration.replace(tzinfo=UTC)
     return now > expiration
 
 
@@ -40,23 +41,14 @@ async def redirect_to_url(short_code: str, request: Request):
     short_url = await get_short_url_by_code(short_code)
 
     if not short_url:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="URL not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="URL not found")
 
     if not short_url.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_410_GONE,
-            detail="URL has been deactivated"
-        )
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail="URL has been deactivated")
 
     # Check expiration
     if is_expired(short_url.expiration):
-        raise HTTPException(
-            status_code=status.HTTP_410_GONE,
-            detail="URL has expired"
-        )
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail="URL has expired")
 
     # Log the click asynchronously (fire and forget pattern)
     client_ip = request.client.host if request.client else None
@@ -65,19 +57,13 @@ async def redirect_to_url(short_code: str, request: Request):
 
     try:
         await log_click(
-            short_url=short_url,
-            ip_address=client_ip,
-            user_agent=user_agent,
-            referrer=referrer
+            short_url=short_url, ip_address=client_ip, user_agent=user_agent, referrer=referrer
         )
     except Exception:
         logger.exception("Click logging failed for %s", short_code)
 
     # 302 redirect (not 301) to ensure we always track clicks
-    return RedirectResponse(
-        url=short_url.original_url,
-        status_code=status.HTTP_302_FOUND
-    )
+    return RedirectResponse(url=short_url.original_url, status_code=status.HTTP_302_FOUND)
 
 
 @router.get("/{short_code}/preview")
@@ -91,17 +77,11 @@ async def get_url_preview_page(short_code: str):
     short_url = await get_short_url_by_code(short_code)
 
     if not short_url or not short_url.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="URL not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="URL not found")
 
     # Check expiration
     if is_expired(short_url.expiration):
-        raise HTTPException(
-            status_code=status.HTTP_410_GONE,
-            detail="URL has expired"
-        )
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail="URL has expired")
 
     return {
         "original_url": short_url.original_url,
@@ -109,7 +89,7 @@ async def get_url_preview_page(short_code: str):
         "description": short_url.preview_description,
         "image": short_url.preview_image,
         "tags": short_url.tags,
-        "summary": short_url.summary
+        "summary": short_url.summary,
     }
 
 
@@ -124,49 +104,36 @@ async def get_url_screenshot(short_code: str):
     short_url = await get_short_url_by_code(short_code)
 
     if not short_url or not short_url.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="URL not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="URL not found")
 
     # Check expiration
     if is_expired(short_url.expiration):
-        raise HTTPException(
-            status_code=status.HTTP_410_GONE,
-            detail="URL has expired"
-        )
+        raise HTTPException(status_code=status.HTTP_410_GONE, detail="URL has expired")
 
     # Try to get existing screenshot
     if short_url.preview_screenshot_id:
-        screenshot_data = await preview_service.get_screenshot(
-            short_url.preview_screenshot_id
-        )
+        screenshot_data = await preview_service.get_screenshot(short_url.preview_screenshot_id)
         if screenshot_data:
             return Response(
                 content=screenshot_data,
                 media_type="image/png",
                 headers={
                     "Cache-Control": "public, max-age=86400",
-                    "Content-Disposition": f"inline; filename=preview_{short_code}.png"
-                }
+                    "Content-Disposition": f"inline; filename=preview_{short_code}.png",
+                },
             )
 
     # Generate new screenshot if none exists
-    screenshot_data = await preview_service.generate_screenshot(
-        short_url.original_url
-    )
+    screenshot_data = await preview_service.generate_screenshot(short_url.original_url)
 
     if screenshot_data is None:
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Screenshot service unavailable"
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Screenshot service unavailable"
         )
 
     # Store for future use
     file_id = await preview_service.store_screenshot(
-        screenshot_data,
-        short_code,
-        short_url.original_url
+        screenshot_data, short_code, short_url.original_url
     )
 
     if file_id:
@@ -179,6 +146,6 @@ async def get_url_screenshot(short_code: str):
         media_type="image/png",
         headers={
             "Cache-Control": "public, max-age=86400",
-            "Content-Disposition": f"inline; filename=preview_{short_code}.png"
-        }
+            "Content-Disposition": f"inline; filename=preview_{short_code}.png",
+        },
     )

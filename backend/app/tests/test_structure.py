@@ -1,5 +1,5 @@
 """Test that the project structure is set up correctly."""
-import pytest
+
 import os
 
 
@@ -34,9 +34,9 @@ class TestProjectStructure:
 
     def test_models_importable(self):
         """Verify models can be imported."""
-        from app.models.user import User
-        from app.models.url import ShortURL
         from app.models.click import ClickLog
+        from app.models.url import ShortURL
+        from app.models.user import User
 
         assert User is not None
         assert ShortURL is not None
@@ -44,8 +44,8 @@ class TestProjectStructure:
 
     def test_schemas_importable(self):
         """Verify schemas can be imported."""
-        from app.schemas.user import UserCreate, UserLogin, Token
-        from app.schemas.url import URLCreate, URLResponse
+        from app.schemas.url import URLCreate
+        from app.schemas.user import UserCreate
 
         assert UserCreate is not None
         assert URLCreate is not None

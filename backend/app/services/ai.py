@@ -5,9 +5,7 @@ Provides content analysis, tagging, summarization, and toxicity detection for UR
 
 import json
 import re
-from typing import Optional
 from dataclasses import dataclass
-from datetime import datetime
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -18,11 +16,12 @@ from app.core.config import settings
 @dataclass
 class AIAnalysisResult:
     """Result of AI content analysis."""
+
     tags: list[str]
     summary: str
     suggested_alias: str
     is_toxic: bool
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class AnthropicClient:
@@ -55,7 +54,7 @@ class AnthropicClient:
                 summary="",
                 suggested_alias="",
                 is_toxic=False,
-                error="ANTHROPIC_API_KEY not configured"
+                error="ANTHROPIC_API_KEY not configured",
             )
 
         prompt = f"""Analyze the following web content and provide:
@@ -82,20 +81,16 @@ Respond ONLY with valid JSON in this exact format:
                 headers = {
                     "x-api-key": self.api_key,
                     "anthropic-version": "2023-06-01",
-                    "content-type": "application/json"
+                    "content-type": "application/json",
                 }
                 payload = {
                     "model": self.model,
                     "max_tokens": 500,
-                    "messages": [
-                        {"role": "user", "content": prompt}
-                    ]
+                    "messages": [{"role": "user", "content": prompt}],
                 }
 
                 async with session.post(
-                    f"{self.base_url}/messages",
-                    headers=headers,
-                    json=payload
+                    f"{self.base_url}/messages", headers=headers, json=payload
                 ) as response:
                     if response.status != 200:
                         error_text = await response.text()
@@ -104,7 +99,7 @@ Respond ONLY with valid JSON in this exact format:
                             summary="",
                             suggested_alias="",
                             is_toxic=False,
-                            error=f"API error: {response.status} - {error_text}"
+                            error=f"API error: {response.status} - {error_text}",
                         )
 
                     data = await response.json()
@@ -121,7 +116,7 @@ Respond ONLY with valid JSON in this exact format:
                         tags=result.get("tags", [])[:5],
                         summary=result.get("summary", "")[:150],
                         suggested_alias=alias,
-                        is_toxic=result.get("is_toxic", False)
+                        is_toxic=result.get("is_toxic", False),
                     )
 
         except json.JSONDecodeError as e:
@@ -130,7 +125,7 @@ Respond ONLY with valid JSON in this exact format:
                 summary="",
                 suggested_alias="",
                 is_toxic=False,
-                error=f"Failed to parse AI response: {str(e)}"
+                error=f"Failed to parse AI response: {str(e)}",
             )
         except Exception as e:
             return AIAnalysisResult(
@@ -138,7 +133,7 @@ Respond ONLY with valid JSON in this exact format:
                 summary="",
                 suggested_alias="",
                 is_toxic=False,
-                error=f"AI analysis failed: {str(e)}"
+                error=f"AI analysis failed: {str(e)}",
             )
 
 
@@ -146,7 +141,7 @@ class ContentFetcher:
     """Fetches and extracts text content from URLs."""
 
     @staticmethod
-    async def fetch_content(url: str, max_length: int = 10000) -> tuple[str, Optional[str]]:
+    async def fetch_content(url: str, max_length: int = 10000) -> tuple[str, str | None]:
         """
         Fetch URL content and extract text.
 
@@ -215,18 +210,14 @@ class AIAnalysisService:
                 summary="",
                 suggested_alias="",
                 is_toxic=False,
-                error="AI analysis not available - API key not configured"
+                error="AI analysis not available - API key not configured",
             )
 
         # Fetch content
         content, fetch_error = await self.fetcher.fetch_content(url)
         if fetch_error:
             return AIAnalysisResult(
-                tags=[],
-                summary="",
-                suggested_alias="",
-                is_toxic=False,
-                error=fetch_error
+                tags=[], summary="", suggested_alias="", is_toxic=False, error=fetch_error
             )
 
         if not content.strip():
@@ -235,7 +226,7 @@ class AIAnalysisService:
                 summary="",
                 suggested_alias="",
                 is_toxic=False,
-                error="No content found at URL"
+                error="No content found at URL",
             )
 
         # Analyze content

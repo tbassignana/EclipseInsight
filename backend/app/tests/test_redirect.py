@@ -1,8 +1,10 @@
 """Tests for redirect service and click tracking."""
+
+from datetime import UTC, datetime, timedelta
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from httpx import AsyncClient, ASGITransport
-from unittest.mock import AsyncMock, patch, MagicMock
-from datetime import datetime, timezone, timedelta
+from httpx import ASGITransport, AsyncClient
 
 from app.main import app
 from app.models.url import ShortURL
@@ -19,7 +21,7 @@ def mock_short_url():
     url.clicks = 5
     url.is_active = True
     url.expiration = None
-    url.created_at = datetime.now(timezone.utc)
+    url.created_at = datetime.now(UTC)
     url.preview_title = "Example Site"
     url.preview_description = "Example description"
     url.preview_image = "https://example.com/image.png"
@@ -29,7 +31,7 @@ def mock_short_url():
     url.suggested_alias = "example-test"
     url.is_toxic = False
     url.ai_analyzed = True
-    url.ai_analyzed_at = datetime.now(timezone.utc)
+    url.ai_analyzed_at = datetime.now(UTC)
     url.preview_screenshot_id = None
     return url
 
@@ -109,13 +111,15 @@ class TestRedirectEndpoint:
     @pytest.mark.asyncio
     async def test_redirect_success(self, mock_short_url):
         """Test successful redirect."""
-        with patch('app.api.redirect.get_short_url_by_code', new_callable=AsyncMock) as mock_get:
-            with patch('app.api.redirect.log_click', new_callable=AsyncMock) as mock_log:
+        with patch("app.api.redirect.get_short_url_by_code", new_callable=AsyncMock) as mock_get:
+            with patch("app.api.redirect.log_click", new_callable=AsyncMock) as mock_log:
                 mock_get.return_value = mock_short_url
                 mock_log.return_value = MagicMock()
 
                 transport = ASGITransport(app=app)
-                async with AsyncClient(transport=transport, base_url="http://test", follow_redirects=False) as client:
+                async with AsyncClient(
+                    transport=transport, base_url="http://test", follow_redirects=False
+                ) as client:
                     response = await client.get("/abc123x")
 
                 assert response.status_code == 302
@@ -124,7 +128,7 @@ class TestRedirectEndpoint:
     @pytest.mark.asyncio
     async def test_redirect_not_found(self):
         """Test redirect with non-existent short code."""
-        with patch('app.api.redirect.get_short_url_by_code', new_callable=AsyncMock) as mock_get:
+        with patch("app.api.redirect.get_short_url_by_code", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = None
 
             transport = ASGITransport(app=app)
@@ -138,7 +142,7 @@ class TestRedirectEndpoint:
         """Test redirect with inactive URL."""
         mock_short_url.is_active = False
 
-        with patch('app.api.redirect.get_short_url_by_code', new_callable=AsyncMock) as mock_get:
+        with patch("app.api.redirect.get_short_url_by_code", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_short_url
 
             transport = ASGITransport(app=app)
@@ -150,9 +154,9 @@ class TestRedirectEndpoint:
     @pytest.mark.asyncio
     async def test_redirect_expired_url(self, mock_short_url):
         """Test redirect with expired URL."""
-        mock_short_url.expiration = datetime.now(timezone.utc) - timedelta(days=1)
+        mock_short_url.expiration = datetime.now(UTC) - timedelta(days=1)
 
-        with patch('app.api.redirect.get_short_url_by_code', new_callable=AsyncMock) as mock_get:
+        with patch("app.api.redirect.get_short_url_by_code", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_short_url
 
             transport = ASGITransport(app=app)
@@ -164,19 +168,21 @@ class TestRedirectEndpoint:
     @pytest.mark.asyncio
     async def test_redirect_with_click_logging(self, mock_short_url):
         """Test that clicks are logged during redirect."""
-        with patch('app.api.redirect.get_short_url_by_code', new_callable=AsyncMock) as mock_get:
-            with patch('app.api.redirect.log_click', new_callable=AsyncMock) as mock_log:
+        with patch("app.api.redirect.get_short_url_by_code", new_callable=AsyncMock) as mock_get:
+            with patch("app.api.redirect.log_click", new_callable=AsyncMock) as mock_log:
                 mock_get.return_value = mock_short_url
                 mock_log.return_value = MagicMock()
 
                 transport = ASGITransport(app=app)
-                async with AsyncClient(transport=transport, base_url="http://test", follow_redirects=False) as client:
+                async with AsyncClient(
+                    transport=transport, base_url="http://test", follow_redirects=False
+                ) as client:
                     response = await client.get(
                         "/abc123x",
                         headers={
                             "User-Agent": "Mozilla/5.0 Chrome/120.0",
-                            "Referer": "https://google.com"
-                        }
+                            "Referer": "https://google.com",
+                        },
                     )
 
                 assert response.status_code == 302
@@ -189,7 +195,7 @@ class TestPreviewEndpoint:
     @pytest.mark.asyncio
     async def test_preview_success(self, mock_short_url):
         """Test getting URL preview."""
-        with patch('app.api.redirect.get_short_url_by_code', new_callable=AsyncMock) as mock_get:
+        with patch("app.api.redirect.get_short_url_by_code", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_short_url
 
             transport = ASGITransport(app=app)
@@ -205,7 +211,7 @@ class TestPreviewEndpoint:
     @pytest.mark.asyncio
     async def test_preview_not_found(self):
         """Test preview for non-existent URL."""
-        with patch('app.api.redirect.get_short_url_by_code', new_callable=AsyncMock) as mock_get:
+        with patch("app.api.redirect.get_short_url_by_code", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = None
 
             transport = ASGITransport(app=app)

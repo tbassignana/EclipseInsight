@@ -33,18 +33,21 @@ def validate_settings() -> None:
     """Validate critical settings on startup and emit warnings."""
     logger = logging.getLogger("app.startup")
 
-    if settings.SECRET_KEY in ("your-secret-key-change-in-production", "your-super-secret-key-change-in-production"):
+    if settings.SECRET_KEY in (
+        "your-secret-key-change-in-production",
+        "your-super-secret-key-change-in-production",
+    ):
         logger.warning(
             "SECRET_KEY is set to the default insecure value. "
             "Set a strong random SECRET_KEY environment variable before deploying to production."
         )
 
     if not settings.ANTHROPIC_API_KEY:
-        logger.info(
-            "ANTHROPIC_API_KEY is not set. AI content analysis features are disabled."
-        )
+        logger.info("ANTHROPIC_API_KEY is not set. AI content analysis features are disabled.")
 
     if settings.DEBUG:
         logger.warning("DEBUG mode is enabled. Do not use in production.")
 
-    logger.info("Configuration validated. App: %s, Base URL: %s", settings.APP_NAME, settings.BASE_URL)
+    logger.info(
+        "Configuration validated. App: %s, Base URL: %s", settings.APP_NAME, settings.BASE_URL
+    )

@@ -1,14 +1,13 @@
-from datetime import datetime, timezone, timedelta
-from typing import Optional
 from collections import Counter
+from datetime import UTC, datetime, timedelta
 
-from app.models.url import ShortURL
-from app.models.click import ClickLog
 from app.core.database import get_redis
+from app.models.click import ClickLog
+from app.models.url import ShortURL
 from app.schemas.url import URLStats
 
 
-async def get_url_stats(short_code: str) -> Optional[URLStats]:
+async def get_url_stats(short_code: str) -> URLStats | None:
     """Get comprehensive statistics for a shortened URL."""
     # Find the URL
     short_url = await ShortURL.find_one({"short_code": short_code})
@@ -16,7 +15,7 @@ async def get_url_stats(short_code: str) -> Optional[URLStats]:
         return None
 
     short_url_id = str(short_url.id)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     week_start = today_start - timedelta(days=7)
 
@@ -55,8 +54,7 @@ async def get_url_stats(short_code: str) -> Optional[URLStats]:
     devices = [c.device_type for c in all_clicks if c.device_type]
     device_counts = Counter(devices)
     clicks_by_device = [
-        {"device": device, "count": count}
-        for device, count in device_counts.most_common()
+        {"device": device, "count": count} for device, count in device_counts.most_common()
     ]
 
     # Calculate clicks over time (last 30 days)
@@ -73,10 +71,7 @@ async def get_url_stats(short_code: str) -> Optional[URLStats]:
     current_date = thirty_days_ago
     while current_date <= now:
         date_key = current_date.strftime("%Y-%m-%d")
-        clicks_over_time.append({
-            "date": date_key,
-            "count": daily_clicks.get(date_key, 0)
-        })
+        clicks_over_time.append({"date": date_key, "count": daily_clicks.get(date_key, 0)})
         current_date += timedelta(days=1)
 
     return URLStats(
@@ -88,7 +83,7 @@ async def get_url_stats(short_code: str) -> Optional[URLStats]:
         top_referrers=top_referrers,
         clicks_by_country=clicks_by_country,
         clicks_by_device=clicks_by_device,
-        clicks_over_time=clicks_over_time
+        clicks_over_time=clicks_over_time,
     )
 
 
@@ -120,7 +115,7 @@ async def get_top_urls(limit: int = 10) -> list[dict]:
                 "from": "users",
                 "localField": "user.$id",
                 "foreignField": "_id",
-                "as": "user_info"
+                "as": "user_info",
             }
         },
         {
@@ -129,9 +124,9 @@ async def get_top_urls(limit: int = 10) -> list[dict]:
                 "original_url": 1,
                 "clicks": 1,
                 "created_at": 1,
-                "user_email": {"$arrayElemAt": ["$user_info.email", 0]}
+                "user_email": {"$arrayElemAt": ["$user_info.email", 0]},
             }
-        }
+        },
     ]
 
     results = await ShortURL.aggregate(pipeline).to_list()
@@ -142,7 +137,7 @@ async def get_top_urls(limit: int = 10) -> list[dict]:
             "short_code": r["short_code"],
             "original_url": r["original_url"],
             "clicks": r["clicks"],
-            "user_email": r.get("user_email", "Unknown")
+            "user_email": r.get("user_email", "Unknown"),
         }
         for r in results
     ]
@@ -158,10 +153,7 @@ async def get_browser_stats(short_code: str) -> list[dict]:
     browsers = [c.browser for c in clicks if c.browser]
     browser_counts = Counter(browsers)
 
-    return [
-        {"browser": browser, "count": count}
-        for browser, count in browser_counts.most_common()
-    ]
+    return [{"browser": browser, "count": count} for browser, count in browser_counts.most_common()]
 
 
 async def get_os_stats(short_code: str) -> list[dict]:
@@ -174,7 +166,4 @@ async def get_os_stats(short_code: str) -> list[dict]:
     os_list = [c.os for c in clicks if c.os]
     os_counts = Counter(os_list)
 
-    return [
-        {"os": os_name, "count": count}
-        for os_name, count in os_counts.most_common()
-    ]
+    return [{"os": os_name, "count": count} for os_name, count in os_counts.most_common()]

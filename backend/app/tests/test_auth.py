@@ -1,12 +1,14 @@
 """Tests for authentication endpoints."""
-import pytest
-from httpx import AsyncClient, ASGITransport
-from unittest.mock import AsyncMock, patch, MagicMock
-from datetime import datetime, timezone
 
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+from httpx import ASGITransport, AsyncClient
+
+from app.core.security import create_access_token
 from app.main import app
 from app.models.user import User
-from app.core.security import create_access_token
 
 
 @pytest.fixture
@@ -18,7 +20,7 @@ def mock_user():
     user.hashed_password = "$2b$12$fake.hashed.password"  # Pre-computed hash placeholder
     user.is_active = True
     user.is_admin = False
-    user.created_at = datetime.now(timezone.utc)
+    user.created_at = datetime.now(UTC)
     return user
 
 
@@ -34,22 +36,22 @@ class TestAuthEndpoints:
     @pytest.mark.asyncio
     async def test_register_success(self):
         """Test successful user registration."""
-        with patch('app.api.auth.get_user_by_email', new_callable=AsyncMock) as mock_get:
-            with patch('app.api.auth.create_user', new_callable=AsyncMock) as mock_create:
+        with patch("app.api.auth.get_user_by_email", new_callable=AsyncMock) as mock_get:
+            with patch("app.api.auth.create_user", new_callable=AsyncMock) as mock_create:
                 mock_get.return_value = None
                 mock_created_user = MagicMock()
                 mock_created_user.id = "507f1f77bcf86cd799439011"
                 mock_created_user.email = "newuser@example.com"
                 mock_created_user.is_active = True
                 mock_created_user.is_admin = False
-                mock_created_user.created_at = datetime.now(timezone.utc)
+                mock_created_user.created_at = datetime.now(UTC)
                 mock_create.return_value = mock_created_user
 
                 transport = ASGITransport(app=app)
                 async with AsyncClient(transport=transport, base_url="http://test") as client:
                     response = await client.post(
                         "/api/v1/auth/register",
-                        json={"email": "newuser@example.com", "password": "testpassword123"}
+                        json={"email": "newuser@example.com", "password": "testpassword123"},
                     )
 
                 assert response.status_code == 201
@@ -60,7 +62,7 @@ class TestAuthEndpoints:
     @pytest.mark.asyncio
     async def test_register_duplicate_email(self):
         """Test registration with existing email."""
-        with patch('app.api.auth.get_user_by_email', new_callable=AsyncMock) as mock_get:
+        with patch("app.api.auth.get_user_by_email", new_callable=AsyncMock) as mock_get:
             mock_existing_user = MagicMock()
             mock_existing_user.email = "existing@example.com"
             mock_get.return_value = mock_existing_user
@@ -69,7 +71,7 @@ class TestAuthEndpoints:
             async with AsyncClient(transport=transport, base_url="http://test") as client:
                 response = await client.post(
                     "/api/v1/auth/register",
-                    json={"email": "existing@example.com", "password": "testpassword123"}
+                    json={"email": "existing@example.com", "password": "testpassword123"},
                 )
 
             assert response.status_code == 400
@@ -82,7 +84,7 @@ class TestAuthEndpoints:
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.post(
                 "/api/v1/auth/register",
-                json={"email": "invalid-email", "password": "testpassword123"}
+                json={"email": "invalid-email", "password": "testpassword123"},
             )
 
         assert response.status_code == 422  # Validation error
@@ -93,8 +95,7 @@ class TestAuthEndpoints:
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.post(
-                "/api/v1/auth/register",
-                json={"email": "test@example.com", "password": "short"}
+                "/api/v1/auth/register", json={"email": "test@example.com", "password": "short"}
             )
 
         assert response.status_code == 422  # Validation error
@@ -102,14 +103,14 @@ class TestAuthEndpoints:
     @pytest.mark.asyncio
     async def test_login_success(self, mock_user):
         """Test successful login."""
-        with patch('app.api.auth.authenticate_user', new_callable=AsyncMock) as mock_auth:
+        with patch("app.api.auth.authenticate_user", new_callable=AsyncMock) as mock_auth:
             mock_auth.return_value = mock_user
 
             transport = ASGITransport(app=app)
             async with AsyncClient(transport=transport, base_url="http://test") as client:
                 response = await client.post(
                     "/api/v1/auth/login",
-                    json={"email": "test@example.com", "password": "testpassword123"}
+                    json={"email": "test@example.com", "password": "testpassword123"},
                 )
 
             assert response.status_code == 200
@@ -120,14 +121,14 @@ class TestAuthEndpoints:
     @pytest.mark.asyncio
     async def test_login_wrong_password(self):
         """Test login with wrong password."""
-        with patch('app.api.auth.authenticate_user', new_callable=AsyncMock) as mock_auth:
+        with patch("app.api.auth.authenticate_user", new_callable=AsyncMock) as mock_auth:
             mock_auth.return_value = None
 
             transport = ASGITransport(app=app)
             async with AsyncClient(transport=transport, base_url="http://test") as client:
                 response = await client.post(
                     "/api/v1/auth/login",
-                    json={"email": "test@example.com", "password": "wrongpassword"}
+                    json={"email": "test@example.com", "password": "wrongpassword"},
                 )
 
             assert response.status_code == 401
@@ -138,14 +139,14 @@ class TestAuthEndpoints:
         """Test login with inactive user account."""
         mock_user.is_active = False
 
-        with patch('app.api.auth.authenticate_user', new_callable=AsyncMock) as mock_auth:
+        with patch("app.api.auth.authenticate_user", new_callable=AsyncMock) as mock_auth:
             mock_auth.return_value = mock_user
 
             transport = ASGITransport(app=app)
             async with AsyncClient(transport=transport, base_url="http://test") as client:
                 response = await client.post(
                     "/api/v1/auth/login",
-                    json={"email": "test@example.com", "password": "testpassword123"}
+                    json={"email": "test@example.com", "password": "testpassword123"},
                 )
 
             assert response.status_code == 403
@@ -154,14 +155,13 @@ class TestAuthEndpoints:
     @pytest.mark.asyncio
     async def test_get_me_success(self, mock_user, auth_token):
         """Test getting current user info with valid token."""
-        with patch('app.core.security.User.find_one', new_callable=AsyncMock) as mock_find:
+        with patch("app.core.security.User.find_one", new_callable=AsyncMock) as mock_find:
             mock_find.return_value = mock_user
 
             transport = ASGITransport(app=app)
             async with AsyncClient(transport=transport, base_url="http://test") as client:
                 response = await client.get(
-                    "/api/v1/auth/me",
-                    headers={"Authorization": f"Bearer {auth_token}"}
+                    "/api/v1/auth/me", headers={"Authorization": f"Bearer {auth_token}"}
                 )
 
             assert response.status_code == 200
@@ -183,8 +183,7 @@ class TestAuthEndpoints:
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.get(
-                "/api/v1/auth/me",
-                headers={"Authorization": "Bearer invalid_token"}
+                "/api/v1/auth/me", headers={"Authorization": "Bearer invalid_token"}
             )
 
         assert response.status_code == 401
@@ -240,14 +239,13 @@ class TestPasswordReset:
         mock_user.reset_token_expires = None
         mock_user.save = AsyncMock()
 
-        with patch('app.services.auth.get_user_by_email', new_callable=AsyncMock) as mock_get:
+        with patch("app.services.auth.get_user_by_email", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_user
 
             transport = ASGITransport(app=app)
             async with AsyncClient(transport=transport, base_url="http://test") as client:
                 response = await client.post(
-                    "/api/v1/auth/forgot-password",
-                    json={"email": "test@example.com"}
+                    "/api/v1/auth/forgot-password", json={"email": "test@example.com"}
                 )
 
             assert response.status_code == 200
@@ -257,14 +255,13 @@ class TestPasswordReset:
     @pytest.mark.asyncio
     async def test_forgot_password_nonexistent_email(self):
         """Test forgot password with non-existent email still returns 200 (no information leak)."""
-        with patch('app.services.auth.get_user_by_email', new_callable=AsyncMock) as mock_get:
+        with patch("app.services.auth.get_user_by_email", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = None
 
             transport = ASGITransport(app=app)
             async with AsyncClient(transport=transport, base_url="http://test") as client:
                 response = await client.post(
-                    "/api/v1/auth/forgot-password",
-                    json={"email": "nobody@example.com"}
+                    "/api/v1/auth/forgot-password", json={"email": "nobody@example.com"}
                 )
 
             assert response.status_code == 200
@@ -275,18 +272,18 @@ class TestPasswordReset:
         """Test resetting password with a valid token."""
         mock_user = MagicMock(spec=User)
         mock_user.reset_token = "valid_token"
-        mock_user.reset_token_expires = datetime(2099, 1, 1, tzinfo=timezone.utc)
+        mock_user.reset_token_expires = datetime(2099, 1, 1, tzinfo=UTC)
         mock_user.hashed_password = "old_hash"
         mock_user.save = AsyncMock()
 
-        with patch('app.services.auth.User.find_one', new_callable=AsyncMock) as mock_find:
+        with patch("app.services.auth.User.find_one", new_callable=AsyncMock) as mock_find:
             mock_find.return_value = mock_user
 
             transport = ASGITransport(app=app)
             async with AsyncClient(transport=transport, base_url="http://test") as client:
                 response = await client.post(
                     "/api/v1/auth/reset-password",
-                    json={"token": "valid_token", "new_password": "newsecurepassword"}
+                    json={"token": "valid_token", "new_password": "newsecurepassword"},
                 )
 
             assert response.status_code == 200
@@ -297,14 +294,14 @@ class TestPasswordReset:
     @pytest.mark.asyncio
     async def test_reset_password_invalid_token(self):
         """Test resetting password with an invalid token."""
-        with patch('app.services.auth.User.find_one', new_callable=AsyncMock) as mock_find:
+        with patch("app.services.auth.User.find_one", new_callable=AsyncMock) as mock_find:
             mock_find.return_value = None
 
             transport = ASGITransport(app=app)
             async with AsyncClient(transport=transport, base_url="http://test") as client:
                 response = await client.post(
                     "/api/v1/auth/reset-password",
-                    json={"token": "invalid_token", "new_password": "newsecurepassword"}
+                    json={"token": "invalid_token", "new_password": "newsecurepassword"},
                 )
 
             assert response.status_code == 400
@@ -315,17 +312,17 @@ class TestPasswordReset:
         """Test resetting password with an expired token."""
         mock_user = MagicMock(spec=User)
         mock_user.reset_token = "expired_token"
-        mock_user.reset_token_expires = datetime(2020, 1, 1, tzinfo=timezone.utc)
+        mock_user.reset_token_expires = datetime(2020, 1, 1, tzinfo=UTC)
         mock_user.save = AsyncMock()
 
-        with patch('app.services.auth.User.find_one', new_callable=AsyncMock) as mock_find:
+        with patch("app.services.auth.User.find_one", new_callable=AsyncMock) as mock_find:
             mock_find.return_value = mock_user
 
             transport = ASGITransport(app=app)
             async with AsyncClient(transport=transport, base_url="http://test") as client:
                 response = await client.post(
                     "/api/v1/auth/reset-password",
-                    json={"token": "expired_token", "new_password": "newsecurepassword"}
+                    json={"token": "expired_token", "new_password": "newsecurepassword"},
                 )
 
             assert response.status_code == 400
@@ -337,8 +334,7 @@ class TestPasswordReset:
         transport = ASGITransport(app=app)
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             response = await client.post(
-                "/api/v1/auth/reset-password",
-                json={"token": "any_token", "new_password": "short"}
+                "/api/v1/auth/reset-password", json={"token": "any_token", "new_password": "short"}
             )
 
         assert response.status_code == 422

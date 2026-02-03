@@ -1,16 +1,12 @@
 """Tests for AI analysis service."""
 
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
 import json
-import aiohttp
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.services.ai import (
-    AIAnalysisResult,
-    AnthropicClient,
-    ContentFetcher,
-    AIAnalysisService
-)
+import aiohttp
+import pytest
+
+from app.services.ai import AIAnalysisResult, AIAnalysisService, AnthropicClient, ContentFetcher
 
 
 class TestAIAnalysisResult:
@@ -18,10 +14,7 @@ class TestAIAnalysisResult:
 
     def test_create_result(self):
         result = AIAnalysisResult(
-            tags=["tech", "news"],
-            summary="A summary",
-            suggested_alias="tech-news",
-            is_toxic=False
+            tags=["tech", "news"], summary="A summary", suggested_alias="tech-news", is_toxic=False
         )
         assert result.tags == ["tech", "news"]
         assert result.summary == "A summary"
@@ -31,11 +24,7 @@ class TestAIAnalysisResult:
 
     def test_create_result_with_error(self):
         result = AIAnalysisResult(
-            tags=[],
-            summary="",
-            suggested_alias="",
-            is_toxic=False,
-            error="API key not configured"
+            tags=[], summary="", suggested_alias="", is_toxic=False, error="API key not configured"
         )
         assert result.error == "API key not configured"
 
@@ -74,14 +63,18 @@ class TestAnthropicClient:
             mock_settings.ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
 
             mock_response = {
-                "content": [{
-                    "text": json.dumps({
-                        "tags": ["python", "programming", "tutorial", "coding", "dev"],
-                        "summary": "A Python programming tutorial",
-                        "suggested_alias": "python-tutorial",
-                        "is_toxic": False
-                    })
-                }]
+                "content": [
+                    {
+                        "text": json.dumps(
+                            {
+                                "tags": ["python", "programming", "tutorial", "coding", "dev"],
+                                "summary": "A Python programming tutorial",
+                                "suggested_alias": "python-tutorial",
+                                "is_toxic": False,
+                            }
+                        )
+                    }
+                ]
             }
 
             with patch("aiohttp.ClientSession") as mock_session:
@@ -188,14 +181,18 @@ class TestAliasValidation:
 
             # Test with invalid characters in alias
             mock_response = {
-                "content": [{
-                    "text": json.dumps({
-                        "tags": ["test"],
-                        "summary": "Test",
-                        "suggested_alias": "Test_Alias!@#$%",
-                        "is_toxic": False
-                    })
-                }]
+                "content": [
+                    {
+                        "text": json.dumps(
+                            {
+                                "tags": ["test"],
+                                "summary": "Test",
+                                "suggested_alias": "Test_Alias!@#$%",
+                                "is_toxic": False,
+                            }
+                        )
+                    }
+                ]
             }
 
             with patch("aiohttp.ClientSession") as mock_session:
