@@ -38,6 +38,7 @@ coverage/
 
 # OS
 .DS_Store
+._*
 Thumbs.db
 
 # Logs
@@ -48,3 +49,11 @@ yarn-debug.log*
 # Misc
 *.pem
 .vercel
+
+# Claude Code
+.claude/
+
+# Nginx SSL certs
+nginx/certs/
+nginx/*.crt
+nginx/*.key

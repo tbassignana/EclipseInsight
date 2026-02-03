@@ -51,6 +51,7 @@ coverage.xml
 
 # Misc
 .DS_Store
+._*
 *.log
 
 # MyPy
