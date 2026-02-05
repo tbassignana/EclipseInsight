@@ -9,6 +9,13 @@ from app.models.url import ShortURL
 from app.schemas.url import URLStats
 
 
+def _ensure_aware(dt: datetime) -> datetime:
+    """Ensure a datetime is timezone-aware (UTC)."""
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=UTC)
+    return dt
+
+
 async def get_url_stats(
     short_code: str,
     date_from: datetime | None = None,
@@ -31,6 +38,12 @@ async def get_url_stats(
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     week_start = today_start - timedelta(days=7)
 
+    # Ensure date params are timezone-aware for consistent comparison
+    if date_from:
+        date_from = _ensure_aware(date_from)
+    if date_to:
+        date_to = _ensure_aware(date_to)
+
     # Build query with optional date range filter
     query = {"short_url_id": short_url_id}
     if date_from or date_to:
@@ -48,8 +61,8 @@ async def get_url_stats(
 
     # Calculate click counts
     total_clicks = len(all_clicks)
-    clicks_today = sum(1 for c in all_clicks if c.timestamp >= today_start)
-    clicks_this_week = sum(1 for c in all_clicks if c.timestamp >= week_start)
+    clicks_today = sum(1 for c in all_clicks if _ensure_aware(c.timestamp) >= today_start)
+    clicks_this_week = sum(1 for c in all_clicks if _ensure_aware(c.timestamp) >= week_start)
 
     # Calculate top referrers
     referrers = [c.referrer for c in all_clicks if c.referrer]
@@ -81,13 +94,13 @@ async def get_url_stats(
         {"device": device, "count": count} for device, count in device_counts.most_common()
     ]
 
-    # Calculate clicks over time — use custom range or default last 30 days
-    range_start = date_from if date_from else (now - timedelta(days=30))
+    # Calculate clicks over time — use custom range or default last 7 days
+    range_start = date_from if date_from else (now - timedelta(days=7))
     range_end = date_to if date_to else now
     daily_clicks = {}
 
     for click in all_clicks:
-        if click.timestamp >= range_start:
+        if _ensure_aware(click.timestamp) >= range_start:
             date_key = click.timestamp.strftime("%Y-%m-%d")
             daily_clicks[date_key] = daily_clicks.get(date_key, 0) + 1
 

@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, BarChart3, ShieldAlert, Sparkles, Tags, FileText, Clock, Eye, LayoutDashboard } from "lucide-react";
@@ -91,13 +90,12 @@ export default function Home() {
               transition={{ delay: 0.1 }}
               className="flex justify-center mb-8"
             >
-              <Image
+              <img
                 src="/EclipseInsight.png"
                 alt="EclipseInsight Logo"
                 width={800}
                 height={300}
-                priority
-                className="h-auto max-w-full"
+                className="h-auto max-w-full drop-shadow-2xl"
               />
             </motion.div>
 

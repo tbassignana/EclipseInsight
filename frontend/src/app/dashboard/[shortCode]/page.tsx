@@ -29,6 +29,8 @@ import {
   ShieldAlert,
   Image as ImageIcon,
   Clock,
+  QrCode,
+  Download,
 } from "lucide-react";
 
 interface UrlStats {
@@ -104,23 +106,44 @@ function TimeSeriesChart({ data }: { data: Array<{ date: string; count: number }
   );
 }
 
+type DatePreset = "7d" | "30d" | "90d" | "all";
+
 export default function UrlStatsPage() {
   const [stats, setStats] = useState<UrlStats | null>(null);
   const [urlDetails, setUrlDetails] = useState<URLResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [datePreset, setDatePreset] = useState<DatePreset>("all");
+  const [customDateFrom, setCustomDateFrom] = useState("");
+  const [customDateTo, setCustomDateTo] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
   const router = useRouter();
   const params = useParams();
   const shortCode = params.shortCode as string;
+
+  const getDateRange = useCallback((): { dateFrom?: string; dateTo?: string } => {
+    // Custom date inputs override presets
+    if (customDateFrom || customDateTo) {
+      const result: { dateFrom?: string; dateTo?: string } = {};
+      if (customDateFrom) result.dateFrom = new Date(customDateFrom).toISOString();
+      if (customDateTo) result.dateTo = new Date(customDateTo + "T23:59:59").toISOString();
+      return result;
+    }
+    if (datePreset === "all") return {};
+    const days = datePreset === "7d" ? 7 : datePreset === "30d" ? 30 : 90;
+    const from = new Date();
+    from.setDate(from.getDate() - days);
+    return { dateFrom: from.toISOString() };
+  }, [datePreset, customDateFrom, customDateTo]);
 
   const fetchData = useCallback(async (token: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      // Fetch both stats and URL details (for AI analysis) in parallel
+      const { dateFrom, dateTo } = getDateRange();
       const [statsData, urlData] = await Promise.all([
-        urlApi.stats(shortCode, token),
+        urlApi.stats(shortCode, token, dateFrom, dateTo),
         urlApi.get(shortCode, token),
       ]);
       setStats(statsData);
@@ -131,7 +154,7 @@ export default function UrlStatsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [shortCode]);
+  }, [shortCode, getDateRange]);
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -141,6 +164,26 @@ export default function UrlStatsPage() {
     }
     fetchData(token);
   }, [router, fetchData]);
+
+  const handleExportCsv = async () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+    setIsExporting(true);
+    try {
+      const { dateFrom, dateTo } = getDateRange();
+      const blob = await urlApi.exportStatsCsv(shortCode, token, dateFrom, dateTo);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${shortCode}-analytics.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Export failed");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleCopy = async () => {
     if (urlDetails) {
@@ -265,8 +308,68 @@ export default function UrlStatsPage() {
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Visit
               </Button>
+              <Button
+                variant="outline"
+                onClick={handleExportCsv}
+                disabled={isExporting}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {isExporting ? "Exporting..." : "CSV"}
+              </Button>
             </div>
           </div>
+        </motion.div>
+
+        {/* Date Range Filter */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="mb-6"
+        >
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <span className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4" />
+                  Date Range:
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {(["7d", "30d", "90d", "all"] as DatePreset[]).map((preset) => (
+                    <Button
+                      key={preset}
+                      variant={datePreset === preset ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        setDatePreset(preset);
+                        setCustomDateFrom("");
+                        setCustomDateTo("");
+                      }}
+                    >
+                      {preset === "all" ? "All Time" : preset === "7d" ? "7 Days" : preset === "30d" ? "30 Days" : "90 Days"}
+                    </Button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={customDateFrom}
+                    onChange={(e) => setCustomDateFrom(e.target.value)}
+                    className="h-9 px-3 rounded-md border border-input bg-background text-sm"
+                    placeholder="From"
+                  />
+                  <span className="text-muted-foreground text-sm">to</span>
+                  <input
+                    type="date"
+                    value={customDateTo}
+                    onChange={(e) => setCustomDateTo(e.target.value)}
+                    className="h-9 px-3 rounded-md border border-input bg-background text-sm"
+                    placeholder="To"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Stats Overview */}
@@ -435,50 +538,88 @@ export default function UrlStatsPage() {
               </CardContent>
             </Card>
 
-            {/* Link Preview Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ImageIcon className="w-5 h-5" />
-                  Link Preview
-                </CardTitle>
-                <CardDescription>
-                  How this link appears when shared
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {urlDetails.preview_title || urlDetails.preview_description || urlDetails.preview_image ? (
-                  <div className="space-y-3">
-                    {urlDetails.preview_image && (
-                      <div className="aspect-video rounded-lg bg-muted overflow-hidden">
-                        <img
-                          src={urlDetails.preview_image}
-                          alt="Link preview"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    {urlDetails.preview_title && (
-                      <h4 className="font-semibold text-sm line-clamp-2">
-                        {urlDetails.preview_title}
-                      </h4>
-                    )}
-                    {urlDetails.preview_description && (
-                      <p className="text-sm text-muted-foreground line-clamp-3">
-                        {urlDetails.preview_description}
+            {/* Link Preview & QR Code Column */}
+            <div className="space-y-6">
+              {/* Link Preview Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ImageIcon className="w-5 h-5" />
+                    Link Preview
+                  </CardTitle>
+                  <CardDescription>
+                    How this link appears when shared
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {urlDetails.preview_title || urlDetails.preview_description || urlDetails.preview_image ? (
+                    <div className="space-y-3">
+                      {urlDetails.preview_image && (
+                        <div className="aspect-video rounded-lg bg-muted overflow-hidden">
+                          <img
+                            src={urlDetails.preview_image}
+                            alt="Link preview"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      {urlDetails.preview_title && (
+                        <h4 className="font-semibold text-sm line-clamp-2">
+                          {urlDetails.preview_title}
+                        </h4>
+                      )}
+                      {urlDetails.preview_description && (
+                        <p className="text-sm text-muted-foreground line-clamp-3">
+                          {urlDetails.preview_description}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <ImageIcon className="w-10 h-10 text-muted-foreground mb-3" />
+                      <p className="text-sm text-muted-foreground">
+                        No preview available
                       </p>
-                    )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* QR Code Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <QrCode className="w-5 h-5" />
+                    QR Code
+                  </CardTitle>
+                  <CardDescription>
+                    Scan to visit this link
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col items-center gap-3">
+                  <div className="bg-white p-4 rounded-lg">
+                    <img
+                      src={urlApi.qrCodeUrl(shortCode)}
+                      alt={`QR code for ${shortCode}`}
+                      className="w-40 h-40"
+                    />
                   </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-8 text-center">
-                    <ImageIcon className="w-10 h-10 text-muted-foreground mb-3" />
-                    <p className="text-sm text-muted-foreground">
-                      No preview available
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const a = document.createElement("a");
+                      a.href = urlApi.qrCodeUrl(shortCode);
+                      a.download = `${shortCode}-qr.png`;
+                      a.click();
+                    }}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download PNG
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </motion.div>
         )}
 

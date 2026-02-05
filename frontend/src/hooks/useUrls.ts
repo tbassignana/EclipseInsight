@@ -10,10 +10,10 @@ const fetchUrls = async (): Promise<URLResponse[]> => {
   return urlApi.list(token);
 };
 
-const fetchUrlStats = async (shortCode: string) => {
+const fetchUrlStats = async (shortCode: string, dateFrom?: string, dateTo?: string) => {
   const token = localStorage.getItem("access_token");
   if (!token) throw new Error("Not authenticated");
-  return urlApi.stats(shortCode, token);
+  return urlApi.stats(shortCode, token, dateFrom, dateTo);
 };
 
 export function useUrls() {
@@ -62,10 +62,10 @@ export function useUrls() {
   };
 }
 
-export function useUrlStats(shortCode: string | null) {
+export function useUrlStats(shortCode: string | null, dateFrom?: string, dateTo?: string) {
   const { data, error, isLoading } = useSWR(
-    shortCode ? `url-stats-${shortCode}` : null,
-    () => (shortCode ? fetchUrlStats(shortCode) : null),
+    shortCode ? `url-stats-${shortCode}-${dateFrom || ""}-${dateTo || ""}` : null,
+    () => (shortCode ? fetchUrlStats(shortCode, dateFrom, dateTo) : null),
     {
       revalidateOnFocus: true,
       refreshInterval: 30000, // Refresh stats every 30 seconds

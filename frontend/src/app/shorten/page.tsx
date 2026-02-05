@@ -23,6 +23,9 @@ import {
   Tag,
   FileText,
   Wand2,
+  QrCode,
+  Download,
+  AlertTriangle,
 } from "lucide-react";
 
 interface URLPreview {
@@ -49,14 +52,18 @@ export default function ShortenPage() {
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [skipAiAnalysis, setSkipAiAnalysis] = useState(false);
   const [useAiSuggestedAlias, setUseAiSuggestedAlias] = useState(false);
+  const [urlCount, setUrlCount] = useState(0);
+  const MAX_URLS = 500;
   const router = useRouter();
 
-  // Check auth on mount
+  // Check auth on mount & fetch quota
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (!token) {
       router.push("/login");
+      return;
     }
+    urlApi.list(token).then((urls) => setUrlCount(urls.length)).catch(() => {});
   }, [router]);
 
   // Fetch URL preview when URL changes
@@ -342,11 +349,27 @@ export default function ShortenPage() {
                       </label>
                     </div>
 
+                    {/* Quota Warning */}
+                    {urlCount / MAX_URLS >= 0.8 && (
+                      <div className={`flex items-center gap-2 p-3 text-sm rounded-lg ${
+                        urlCount >= MAX_URLS
+                          ? "text-destructive bg-destructive/10"
+                          : "text-yellow-600 dark:text-yellow-400 bg-yellow-500/10"
+                      }`}>
+                        <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                        <span>
+                          {urlCount >= MAX_URLS
+                            ? `URL quota reached (${urlCount}/${MAX_URLS}). Delete some URLs to create new ones.`
+                            : `Approaching URL quota: ${urlCount}/${MAX_URLS} used.`}
+                        </span>
+                      </div>
+                    )}
+
                     <Button
                       type="submit"
                       variant="gradient"
                       className="w-full"
-                      disabled={isLoading || !url}
+                      disabled={isLoading || !url || urlCount >= MAX_URLS}
                     >
                       {isLoading ? (
                         <>
@@ -428,6 +451,39 @@ export default function ShortenPage() {
                         </motion.p>
                       )}
                     </div>
+
+                    {/* QR Code */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.25 }}
+                      className="flex flex-col items-center gap-3 p-4 rounded-lg bg-secondary/50"
+                    >
+                      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                        <QrCode className="w-4 h-4" />
+                        QR Code
+                      </div>
+                      <div className="bg-white p-3 rounded-lg">
+                        <img
+                          src={urlApi.qrCodeUrl(result.shortCode)}
+                          alt={`QR code for ${result.shortCode}`}
+                          className="w-36 h-36"
+                        />
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const a = document.createElement("a");
+                          a.href = urlApi.qrCodeUrl(result.shortCode);
+                          a.download = `${result.shortCode}-qr.png`;
+                          a.click();
+                        }}
+                      >
+                        <Download className="w-4 h-4 mr-1" />
+                        Download QR
+                      </Button>
+                    </motion.div>
 
                     {/* AI Analysis Results */}
                     {result.ai?.analyzed && (

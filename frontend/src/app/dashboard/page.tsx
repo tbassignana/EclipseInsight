@@ -25,6 +25,10 @@ import {
   Pencil,
   X,
   Save,
+  QrCode,
+  Download,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import type { ShortURL } from "@/types";
 
@@ -40,7 +44,12 @@ export default function DashboardPage() {
   const [editAlias, setEditAlias] = useState("");
   const [editExpDays, setEditExpDays] = useState("");
   const [editLoading, setEditLoading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [showBulkConfirm, setShowBulkConfirm] = useState(false);
+  const [qrModalCode, setQrModalCode] = useState<string | null>(null);
   const router = useRouter();
+  const MAX_URLS = 500;
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -147,6 +156,43 @@ export default function DashboardPage() {
     }
   };
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredUrls.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredUrls.map((u) => u.short_code)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const token = localStorage.getItem("access_token");
+    if (!token || selectedIds.size === 0) return;
+
+    setBulkDeleting(true);
+    try {
+      const result = await urlApi.bulkDelete(Array.from(selectedIds), token);
+      setUrls(urls.filter((u) => !result.deleted.includes(u.short_code)));
+      setSelectedIds(new Set());
+      setShowBulkConfirm(false);
+      if (result.total_failed > 0) {
+        setError(`Deleted ${result.total_deleted}, failed: ${result.failed.join(", ")}`);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Bulk delete failed");
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   const filteredUrls = urls.filter(
     (url) =>
       url.original_url.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -196,6 +242,24 @@ export default function DashboardPage() {
                 </div>
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                   <Link2 className="w-6 h-6 text-primary" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                  <span>Quota</span>
+                  <span>{urls.length} / {MAX_URLS}</span>
+                </div>
+                <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      urls.length / MAX_URLS > 0.9
+                        ? "bg-destructive"
+                        : urls.length / MAX_URLS > 0.7
+                          ? "bg-yellow-500"
+                          : "bg-primary"
+                    }`}
+                    style={{ width: `${Math.min((urls.length / MAX_URLS) * 100, 100)}%` }}
+                  />
                 </div>
               </div>
             </CardContent>
@@ -252,20 +316,50 @@ export default function DashboardPage() {
           <Card>
             <CardHeader>
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <CardTitle>Your Links</CardTitle>
-                  <CardDescription>
-                    {filteredUrls.length} of {urls.length} links
-                  </CardDescription>
+                <div className="flex items-center gap-3">
+                  {filteredUrls.length > 0 && (
+                    <button
+                      onClick={toggleSelectAll}
+                      className="p-1 hover:bg-secondary rounded"
+                      aria-label="Select all"
+                    >
+                      {selectedIds.size === filteredUrls.length && filteredUrls.length > 0 ? (
+                        <CheckSquare className="w-5 h-5 text-primary" />
+                      ) : (
+                        <Square className="w-5 h-5 text-muted-foreground" />
+                      )}
+                    </button>
+                  )}
+                  <div>
+                    <CardTitle>Your Links</CardTitle>
+                    <CardDescription>
+                      {selectedIds.size > 0
+                        ? `${selectedIds.size} selected`
+                        : `${filteredUrls.length} of ${urls.length} links`}
+                    </CardDescription>
+                  </div>
                 </div>
-                <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search links..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
+                <div className="flex items-center gap-2">
+                  {selectedIds.size > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowBulkConfirm(true)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Delete {selectedIds.size}
+                    </Button>
+                  )}
+                  <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search links..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
                 </div>
               </div>
             </CardHeader>
@@ -310,9 +404,19 @@ export default function DashboardPage() {
                         className="p-4 rounded-lg border bg-card hover:border-primary/50 transition-colors"
                       >
                         <div className="flex flex-col sm:flex-row gap-4">
-                          {/* URL Icon placeholder - PNG: 32x32, glowing blue link symbol */}
-                          <div className="hidden sm:flex w-10 h-10 rounded-lg bg-primary/10 items-center justify-center flex-shrink-0">
-                            <Link2 className="w-5 h-5 text-primary" />
+                          {/* Selection checkbox */}
+                          <div className="hidden sm:flex flex-col items-center gap-2 flex-shrink-0">
+                            <button
+                              onClick={() => toggleSelect(url.short_code)}
+                              className="p-1 hover:bg-secondary rounded"
+                              aria-label={selectedIds.has(url.short_code) ? "Deselect" : "Select"}
+                            >
+                              {selectedIds.has(url.short_code) ? (
+                                <CheckSquare className="w-5 h-5 text-primary" />
+                              ) : (
+                                <Square className="w-5 h-5 text-muted-foreground" />
+                              )}
+                            </button>
                           </div>
 
                           <div className="flex-1 min-w-0">
@@ -397,6 +501,14 @@ export default function DashboardPage() {
                             <Button
                               variant="outline"
                               size="sm"
+                              onClick={() => setQrModalCode(qrModalCode === url.short_code ? null : url.short_code)}
+                              title="QR Code"
+                            >
+                              <QrCode className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => startEditing(url)}
                             >
                               <Pencil className="w-4 h-4" />
@@ -423,6 +535,37 @@ export default function DashboardPage() {
                             </Button>
                           </div>
                         </div>
+
+                        {/* Inline QR Code */}
+                        {qrModalCode === url.short_code && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mt-4 pt-4 border-t flex flex-col items-center gap-3"
+                          >
+                            <div className="bg-white p-3 rounded-lg">
+                              <img
+                                src={urlApi.qrCodeUrl(url.short_code)}
+                                alt={`QR code for ${url.short_code}`}
+                                className="w-36 h-36"
+                              />
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const a = document.createElement("a");
+                                a.href = urlApi.qrCodeUrl(url.short_code);
+                                a.download = `${url.short_code}-qr.png`;
+                                a.click();
+                              }}
+                            >
+                              <Download className="w-4 h-4 mr-1" />
+                              Download
+                            </Button>
+                          </motion.div>
+                        )}
 
                         {/* Inline Edit Form */}
                         {editingId === url.id && (
@@ -497,6 +640,41 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </motion.div>
+        {/* Bulk Delete Confirmation Dialog */}
+        {showBulkConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-card border rounded-lg p-6 max-w-md mx-4 shadow-lg"
+            >
+              <h3 className="text-lg font-semibold mb-2">Delete {selectedIds.size} URLs?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                This will permanently deactivate the selected URLs. This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowBulkConfirm(false)}
+                  disabled={bulkDeleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleting}
+                >
+                  {bulkDeleting ? (
+                    <><Spinner size="sm" className="mr-1" /> Deleting...</>
+                  ) : (
+                    <><Trash2 className="w-4 h-4 mr-1" /> Delete All</>
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </div>
     </div>
   );

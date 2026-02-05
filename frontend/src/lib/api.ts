@@ -119,8 +119,12 @@ export const urlApi = {
   get: (shortCode: string, token: string) =>
     apiRequest<URLResponse>(`/urls/${shortCode}`, { token }),
 
-  stats: (shortCode: string, token: string) =>
-    apiRequest<{
+  stats: (shortCode: string, token: string, dateFrom?: string, dateTo?: string) => {
+    const params = new URLSearchParams();
+    if (dateFrom) params.set("date_from", dateFrom);
+    if (dateTo) params.set("date_to", dateTo);
+    const qs = params.toString();
+    return apiRequest<{
       short_code: string;
       original_url: string;
       total_clicks: number;
@@ -130,7 +134,8 @@ export const urlApi = {
       clicks_by_country: Array<{ country: string; count: number }>;
       clicks_by_device: Array<{ device: string; count: number }>;
       clicks_over_time: Array<{ date: string; count: number }>;
-    }>(`/urls/${shortCode}/stats`, { token }),
+    }>(`/stats/${shortCode}${qs ? `?${qs}` : ""}`, { token });
+  },
 
   update: (
     shortCode: string,
@@ -156,6 +161,37 @@ export const urlApi = {
       image?: string;
       url: string;
     }>(`/urls/preview?url=${encodeURIComponent(url)}`),
+
+  bulkDelete: (shortCodes: string[], token: string) =>
+    apiRequest<{
+      deleted: string[];
+      failed: string[];
+      total_deleted: number;
+      total_failed: number;
+    }>("/urls/bulk-delete", {
+      method: "POST",
+      body: JSON.stringify({ short_codes: shortCodes }),
+      token,
+    }),
+
+  exportStatsCsv: async (shortCode: string, token: string, dateFrom?: string, dateTo?: string): Promise<Blob> => {
+    const params = new URLSearchParams();
+    if (dateFrom) params.set("date_from", dateFrom);
+    if (dateTo) params.set("date_to", dateTo);
+    const qs = params.toString();
+    const response = await fetch(
+      `${API_BASE_URL}/stats/${shortCode}/export${qs ? `?${qs}` : ""}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: "Export failed" }));
+      throw new Error(error.detail || "Export failed");
+    }
+    return response.blob();
+  },
+
+  qrCodeUrl: (shortCode: string) =>
+    `${API_BASE_URL}/urls/${shortCode}/qr`,
 };
 
 // Admin API
