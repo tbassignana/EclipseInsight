@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import Response
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -7,6 +8,7 @@ from app.core.security import get_current_user
 from app.models.url import ShortURL
 from app.models.user import User
 from app.schemas.url import AIAnalysis, URLCreate, URLPreview, URLResponse, URLStats, URLUpdate
+from app.services.qrcode import generate_qr_code
 from app.services.url import (
     create_short_url,
     delete_short_url,
@@ -171,6 +173,36 @@ async def update_url(
         )
 
     return build_url_response(updated)
+
+
+@router.get("/{short_code}/qr")
+async def get_qr_code(
+    short_code: str,
+    size: int = Query(10, ge=5, le=40, description="Box size in pixels per module"),
+    border: int = Query(4, ge=1, le=10, description="Border width in modules"),
+):
+    """
+    Generate a QR code image for a shortened URL.
+
+    Returns a PNG image of the QR code that encodes the short URL.
+    No authentication required so QR codes can be embedded freely.
+
+    - **size**: Pixel size per module (5-40, default: 10)
+    - **border**: Border width in modules (1-10, default: 4)
+    """
+    short_url = await get_short_url_by_code(short_code)
+
+    if not short_url or not short_url.is_active:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="URL not found")
+
+    full_url = f"{settings.BASE_URL}/{short_url.short_code}"
+    png_bytes = generate_qr_code(full_url, size=size, border=border)
+
+    return Response(
+        content=png_bytes,
+        media_type="image/png",
+        headers={"Content-Disposition": f'inline; filename="{short_code}-qr.png"'},
+    )
 
 
 @router.delete("/{short_code}", status_code=status.HTTP_200_OK)

@@ -43,6 +43,10 @@ anthropic>=0.74.0,<0.75.0
 # URL Preview - Puppeteer alternative for Python
 pyppeteer>=2.0.0
 
+# QR Code generation
+qrcode[pil]>=7.4.2
+Pillow>=10.2.0
+
 # Utilities
 python-dotenv>=1.0.0
 shortuuid>=1.0.11
