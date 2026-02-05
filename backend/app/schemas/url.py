@@ -74,6 +74,21 @@ class URLUpdate(BaseModel):
     )
 
 
+class BulkDeleteRequest(BaseModel):
+    short_codes: list[str] = Field(
+        ..., min_length=1, max_length=100, description="List of short codes to delete (max 100)"
+    )
+
+
+class BulkDeleteResponse(BaseModel):
+    deleted: list[str] = Field(default_factory=list, description="Short codes successfully deleted")
+    failed: list[str] = Field(
+        default_factory=list, description="Short codes that could not be deleted"
+    )
+    total_deleted: int = 0
+    total_failed: int = 0
+
+
 class URLPreview(BaseModel):
     title: str | None = None
     description: str | None = None

@@ -7,9 +7,19 @@ from app.core.config import settings
 from app.core.security import get_current_user
 from app.models.url import ShortURL
 from app.models.user import User
-from app.schemas.url import AIAnalysis, URLCreate, URLPreview, URLResponse, URLStats, URLUpdate
+from app.schemas.url import (
+    AIAnalysis,
+    BulkDeleteRequest,
+    BulkDeleteResponse,
+    URLCreate,
+    URLPreview,
+    URLResponse,
+    URLStats,
+    URLUpdate,
+)
 from app.services.qrcode import generate_qr_code
 from app.services.url import (
+    bulk_delete_short_urls,
     create_short_url,
     delete_short_url,
     fetch_url_preview,
@@ -218,3 +228,24 @@ async def delete_url(short_code: str, current_user: User = Depends(get_current_u
         )
 
     return {"message": "URL deleted successfully"}
+
+
+@router.post("/bulk-delete", response_model=BulkDeleteResponse)
+async def bulk_delete_urls(
+    request_body: BulkDeleteRequest, current_user: User = Depends(get_current_user)
+):
+    """
+    Delete multiple shortened URLs at once (soft delete).
+
+    - **short_codes**: List of short codes to delete (max 100)
+
+    Returns which deletions succeeded and which failed (not found or not owned).
+    """
+    deleted, failed = await bulk_delete_short_urls(request_body.short_codes, current_user)
+
+    return BulkDeleteResponse(
+        deleted=deleted,
+        failed=failed,
+        total_deleted=len(deleted),
+        total_failed=len(failed),
+    )

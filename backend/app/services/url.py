@@ -250,6 +250,23 @@ async def delete_short_url(short_code: str, user: User) -> bool:
     return True
 
 
+async def bulk_delete_short_urls(
+    short_codes: list[str], user: User
+) -> tuple[list[str], list[str]]:
+    """Bulk soft-delete short URLs. Returns (deleted, failed) lists."""
+    deleted = []
+    failed = []
+
+    for code in short_codes:
+        success = await delete_short_url(code, user)
+        if success:
+            deleted.append(code)
+        else:
+            failed.append(code)
+
+    return deleted, failed
+
+
 async def get_url_stats(short_url: ShortURL) -> URLStats:
     """Get detailed statistics for a shortened URL."""
     url_id = str(short_url.id)
