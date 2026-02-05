@@ -5,10 +5,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from pydantic import ValidationError
 
 from app.core.security import create_access_token
 from app.main import app
-from app.models.url import ShortURL
 from app.models.user import User
 from app.schemas.url import BulkDeleteRequest, BulkDeleteResponse
 
@@ -33,7 +33,7 @@ class TestBulkDeleteSchema:
 
     def test_bulk_delete_request_empty_list_rejected(self):
         """Test that empty list is rejected by validation."""
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             BulkDeleteRequest(short_codes=[])
 
     def test_bulk_delete_response(self):

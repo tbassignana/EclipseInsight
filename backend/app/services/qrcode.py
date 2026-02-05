@@ -1,7 +1,6 @@
 import io
 
 import qrcode
-from qrcode.image.styledpil import StyledPilImage
 
 
 def generate_qr_code(url: str, size: int = 10, border: int = 4) -> bytes:
