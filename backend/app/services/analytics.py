@@ -1,3 +1,5 @@
+import csv
+import io
 from collections import Counter
 from datetime import UTC, datetime, timedelta
 
@@ -190,3 +192,51 @@ async def get_os_stats(short_code: str) -> list[dict]:
     os_counts = Counter(os_list)
 
     return [{"os": os_name, "count": count} for os_name, count in os_counts.most_common()]
+
+
+async def export_clicks_csv(
+    short_code: str,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+) -> str | None:
+    """Export click logs for a URL as CSV string.
+
+    Returns CSV content as a string, or None if the URL doesn't exist.
+    """
+    short_url = await ShortURL.find_one({"short_code": short_code})
+    if not short_url:
+        return None
+
+    short_url_id = str(short_url.id)
+
+    # Build query with optional date range
+    query = {"short_url_id": short_url_id}
+    if date_from or date_to:
+        timestamp_filter = {}
+        if date_from:
+            timestamp_filter["$gte"] = date_from
+        if date_to:
+            end_of_day = date_to.replace(hour=23, minute=59, second=59, microsecond=999999)
+            timestamp_filter["$lte"] = end_of_day
+        query["timestamp"] = timestamp_filter
+
+    clicks = await ClickLog.find(query).to_list()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "timestamp", "referrer", "browser", "os", "device_type", "country", "city"
+    ])
+
+    for click in clicks:
+        writer.writerow([
+            click.timestamp.isoformat() if click.timestamp else "",
+            click.referrer or "",
+            click.browser or "",
+            click.os or "",
+            click.device_type or "",
+            click.country or "",
+            click.city or "",
+        ])
+
+    return output.getvalue()
