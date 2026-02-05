@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     # URL Settings
     SHORT_CODE_LENGTH: int = 7
     BASE_URL: str = "http://localhost:8000"
+    MAX_URLS_PER_USER: int = 500  # 0 = unlimited
 
     # CORS
     CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:8000"]

@@ -90,8 +90,28 @@ async def fetch_url_preview(url: str) -> URLPreview:
     return preview
 
 
+async def check_user_url_quota(user: User) -> None:
+    """Check if user has exceeded their URL creation quota.
+
+    Raises ValueError if the quota is exceeded. Admins bypass the quota.
+    """
+    max_urls = settings.MAX_URLS_PER_USER
+    if max_urls <= 0 or user.is_admin:
+        return  # Unlimited or admin
+
+    active_count = await ShortURL.find({"user.$id": user.id, "is_active": True}).count()
+    if active_count >= max_urls:
+        raise ValueError(
+            f"URL quota exceeded. You have {active_count}/{max_urls} active URLs. "
+            "Delete some URLs to create new ones."
+        )
+
+
 async def create_short_url(url_data: URLCreate, user: User, fetch_preview: bool = True) -> ShortURL:
     """Create a new shortened URL with AI analysis."""
+    # Check quota before doing anything else
+    await check_user_url_quota(user)
+
     # Run AI analysis if enabled
     ai_result = None
     if not url_data.skip_ai_analysis and ai_service.is_available:
