@@ -6,9 +6,14 @@ A modern, full-stack URL shortener with AI-powered content analysis and advanced
 
 ### Core Features
 - **URL Shortening**: Generate short, memorable links with optional custom aliases
+- **QR Code Generation**: Generate downloadable QR code PNGs for any short URL
 - **Click Analytics**: Track clicks with detailed breakdowns by device, browser, OS, country, and referrer
+- **Date Range Filtering**: Filter analytics by custom date ranges for campaign analysis
+- **CSV Analytics Export**: Download click analytics as CSV for external analysis
 - **Real-time Statistics**: Live click counting and analytics via Redis
+- **Bulk URL Management**: Delete multiple URLs at once with partial-success reporting
 - **User Authentication**: Secure JWT-based authentication with role-based access
+- **User URL Quotas**: Configurable per-user URL limits to prevent abuse (admins bypass)
 - **Rate Limiting**: Protect against abuse with configurable rate limits
 - **Admin Dashboard**: Platform-wide statistics and URL management
 
@@ -279,6 +284,9 @@ RATE_LIMIT_REGISTER=5/minute
 # Short Code Configuration
 SHORT_CODE_LENGTH=6
 
+# URL Quotas (0 = unlimited, admins always bypass)
+MAX_URLS_PER_USER=500
+
 # AI Features (Optional - enables smart tagging and content analysis)
 ANTHROPIC_API_KEY=your-anthropic-api-key-here
 ```
@@ -426,11 +434,14 @@ eclipseinsight/
 │   │   ├── schemas/          # Pydantic request/response schemas
 │   │   ├── services/         # Business logic
 │   │   │   ├── ai.py         # AI content analysis (Anthropic)
+│   │   │   ├── analytics.py  # Statistics aggregation & CSV export
 │   │   │   ├── auth.py       # Authentication service
 │   │   │   ├── click.py      # Click tracking service
-│   │   │   └── preview.py    # URL preview & screenshots
+│   │   │   ├── preview.py    # URL preview & screenshots
+│   │   │   ├── qrcode.py     # QR code image generation
+│   │   │   └── url.py        # URL CRUD, quotas, short code gen
 │   │   └── main.py           # FastAPI app initialization
-│   ├── tests/                # Pytest tests
+│   ├── tests/                # Pytest tests (146 tests)
 │   ├── Dockerfile            # Production Dockerfile
 │   ├── Dockerfile.dev        # Development Dockerfile
 │   └── requirements.txt      # Python dependencies
@@ -474,6 +485,8 @@ eclipseinsight/
 | POST | `/api/v1/auth/register` | Register new user |
 | POST | `/api/v1/auth/login` | Login and get JWT token |
 | GET | `/api/v1/auth/me` | Get current user info |
+| POST | `/api/v1/auth/forgot-password` | Request password reset token |
+| POST | `/api/v1/auth/reset-password` | Reset password with token |
 
 ### URLs
 
@@ -481,23 +494,29 @@ eclipseinsight/
 |--------|----------|-------------|
 | POST | `/api/v1/urls/shorten` | Create short URL (with optional AI analysis) |
 | GET | `/api/v1/urls` | List user's URLs |
+| GET | `/api/v1/urls/preview` | Fetch URL preview metadata (Open Graph) |
+| GET | `/api/v1/urls/{short_code}` | Get URL details |
 | GET | `/api/v1/urls/{short_code}/stats` | Get URL analytics |
-| DELETE | `/api/v1/urls/{short_code}` | Delete URL |
+| GET | `/api/v1/urls/{short_code}/qr` | Generate QR code PNG (no auth required) |
+| PATCH | `/api/v1/urls/{short_code}` | Update URL destination, alias, or expiration |
+| DELETE | `/api/v1/urls/{short_code}` | Delete URL (soft delete) |
+| POST | `/api/v1/urls/bulk-delete` | Delete multiple URLs at once (max 100) |
 
 ### Analytics
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/v1/stats/{short_code}` | Get comprehensive URL statistics |
-| GET | `/api/v1/stats/{short_code}/realtime` | Get real-time click count |
-| GET | `/api/v1/stats/{short_code}/browsers` | Get browser breakdown |
-| GET | `/api/v1/stats/{short_code}/os` | Get OS breakdown |
+| GET | `/api/v1/stats/{short_code}` | Comprehensive stats (supports `date_from`/`date_to` filtering) |
+| GET | `/api/v1/stats/{short_code}/realtime` | Real-time click count (via Redis) |
+| GET | `/api/v1/stats/{short_code}/browsers` | Browser breakdown |
+| GET | `/api/v1/stats/{short_code}/os` | OS breakdown |
+| GET | `/api/v1/stats/{short_code}/export` | Download click analytics as CSV |
 
 ### Redirect
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/{short_code}` | Redirect to original URL (302) |
+| GET | `/{short_code}` | Redirect to original URL (302) with click logging |
 
 ### Admin (requires admin role)
 
