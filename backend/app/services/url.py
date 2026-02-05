@@ -270,9 +270,7 @@ async def delete_short_url(short_code: str, user: User) -> bool:
     return True
 
 
-async def bulk_delete_short_urls(
-    short_codes: list[str], user: User
-) -> tuple[list[str], list[str]]:
+async def bulk_delete_short_urls(short_codes: list[str], user: User) -> tuple[list[str], list[str]]:
     """Bulk soft-delete short URLs. Returns (deleted, failed) lists."""
     deleted = []
     failed = []

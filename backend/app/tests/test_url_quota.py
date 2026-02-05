@@ -145,9 +145,7 @@ class TestQuotaEndpointIntegration:
 
         with (
             patch("app.core.security.User.find_one", new_callable=AsyncMock) as mock_find,
-            patch(
-                "app.api.urls.create_short_url", new_callable=AsyncMock
-            ) as mock_create,
+            patch("app.api.urls.create_short_url", new_callable=AsyncMock) as mock_create,
         ):
             mock_find.return_value = user
             mock_create.side_effect = ValueError(

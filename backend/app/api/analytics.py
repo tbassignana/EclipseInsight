@@ -183,7 +183,5 @@ async def export_analytics_csv(
     return Response(
         content=csv_content,
         media_type="text/csv",
-        headers={
-            "Content-Disposition": f'attachment; filename="{short_code}-analytics.csv"'
-        },
+        headers={"Content-Disposition": f'attachment; filename="{short_code}-analytics.csv"'},
     )

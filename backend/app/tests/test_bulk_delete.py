@@ -61,9 +61,7 @@ class TestBulkDeleteEndpoint:
 
         with (
             patch("app.core.security.User.find_one", new_callable=AsyncMock) as mock_find,
-            patch(
-                "app.api.urls.bulk_delete_short_urls", new_callable=AsyncMock
-            ) as mock_bulk_del,
+            patch("app.api.urls.bulk_delete_short_urls", new_callable=AsyncMock) as mock_bulk_del,
         ):
             mock_find.return_value = user
             mock_bulk_del.return_value = (["code1xx", "code2xx"], [])
@@ -91,9 +89,7 @@ class TestBulkDeleteEndpoint:
 
         with (
             patch("app.core.security.User.find_one", new_callable=AsyncMock) as mock_find,
-            patch(
-                "app.api.urls.bulk_delete_short_urls", new_callable=AsyncMock
-            ) as mock_bulk_del,
+            patch("app.api.urls.bulk_delete_short_urls", new_callable=AsyncMock) as mock_bulk_del,
         ):
             mock_find.return_value = user
             mock_bulk_del.return_value = (["code1xx"], ["notfond"])
@@ -121,9 +117,7 @@ class TestBulkDeleteEndpoint:
 
         with (
             patch("app.core.security.User.find_one", new_callable=AsyncMock) as mock_find,
-            patch(
-                "app.api.urls.bulk_delete_short_urls", new_callable=AsyncMock
-            ) as mock_bulk_del,
+            patch("app.api.urls.bulk_delete_short_urls", new_callable=AsyncMock) as mock_bulk_del,
         ):
             mock_find.return_value = user
             mock_bulk_del.return_value = ([], ["bad1xxx", "bad2xxx"])
@@ -180,9 +174,7 @@ class TestBulkDeleteEndpoint:
 
         with (
             patch("app.core.security.User.find_one", new_callable=AsyncMock) as mock_find,
-            patch(
-                "app.api.urls.bulk_delete_short_urls", new_callable=AsyncMock
-            ) as mock_bulk_del,
+            patch("app.api.urls.bulk_delete_short_urls", new_callable=AsyncMock) as mock_bulk_del,
         ):
             mock_find.return_value = user
             mock_bulk_del.return_value = (["single1"], [])
@@ -213,9 +205,7 @@ class TestBulkDeleteServiceLayer:
         with patch("app.services.url.delete_short_url", new_callable=AsyncMock) as mock_del:
             mock_del.side_effect = [True, False, True]
 
-            deleted, failed = await bulk_delete_short_urls(
-                ["url1xxx", "url2xxx", "url3xxx"], user
-            )
+            deleted, failed = await bulk_delete_short_urls(["url1xxx", "url2xxx", "url3xxx"], user)
 
             assert deleted == ["url1xxx", "url3xxx"]
             assert failed == ["url2xxx"]

@@ -40,8 +40,15 @@ def _mock_short_url(short_code="csv_test"):
     return url
 
 
-def _make_click(timestamp, referrer=None, browser="Chrome", os="Windows", device="desktop",
-                country="US", city="New York"):
+def _make_click(
+    timestamp,
+    referrer=None,
+    browser="Chrome",
+    os="Windows",
+    device="desktop",
+    country="US",
+    city="New York",
+):
     click = MagicMock(spec=ClickLog)
     click.short_url_id = "607f1f77bcf86cd799439033"
     click.timestamp = timestamp
@@ -81,7 +88,15 @@ class TestCSVExportService:
         rows = list(reader)
         # Header + 2 data rows
         assert len(rows) == 3
-        assert rows[0] == ["timestamp", "referrer", "browser", "os", "device_type", "country", "city"]
+        assert rows[0] == [
+            "timestamp",
+            "referrer",
+            "browser",
+            "os",
+            "device_type",
+            "country",
+            "city",
+        ]
         assert rows[1][2] == "Chrome"
         assert rows[2][2] == "Firefox"
 
@@ -140,8 +155,13 @@ class TestCSVExportService:
         """Test that null/None fields are exported as empty strings."""
         mock_url = _mock_short_url("csv_nul")
         click = _make_click(
-            datetime.now(UTC), referrer=None, browser=None, os=None,
-            device=None, country=None, city=None
+            datetime.now(UTC),
+            referrer=None,
+            browser=None,
+            os=None,
+            device=None,
+            country=None,
+            city=None,
         )
 
         with (
@@ -183,9 +203,7 @@ class TestCSVExportEndpoint:
             patch(
                 "app.api.analytics.get_short_url_by_code", new_callable=AsyncMock
             ) as mock_get_url,
-            patch(
-                "app.api.analytics.export_clicks_csv", new_callable=AsyncMock
-            ) as mock_export,
+            patch("app.api.analytics.export_clicks_csv", new_callable=AsyncMock) as mock_export,
         ):
             mock_find_user.return_value = user
             mock_get_url.return_value = mock_url
@@ -275,9 +293,7 @@ class TestCSVExportEndpoint:
             patch(
                 "app.api.analytics.get_short_url_by_code", new_callable=AsyncMock
             ) as mock_get_url,
-            patch(
-                "app.api.analytics.export_clicks_csv", new_callable=AsyncMock
-            ) as mock_export,
+            patch("app.api.analytics.export_clicks_csv", new_callable=AsyncMock) as mock_export,
         ):
             mock_find_user.return_value = user
             mock_get_url.return_value = mock_url

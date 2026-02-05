@@ -224,19 +224,19 @@ async def export_clicks_csv(
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow([
-        "timestamp", "referrer", "browser", "os", "device_type", "country", "city"
-    ])
+    writer.writerow(["timestamp", "referrer", "browser", "os", "device_type", "country", "city"])
 
     for click in clicks:
-        writer.writerow([
-            click.timestamp.isoformat() if click.timestamp else "",
-            click.referrer or "",
-            click.browser or "",
-            click.os or "",
-            click.device_type or "",
-            click.country or "",
-            click.city or "",
-        ])
+        writer.writerow(
+            [
+                click.timestamp.isoformat() if click.timestamp else "",
+                click.referrer or "",
+                click.browser or "",
+                click.os or "",
+                click.device_type or "",
+                click.country or "",
+                click.city or "",
+            ]
+        )
 
     return output.getvalue()

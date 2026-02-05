@@ -277,9 +277,7 @@ class TestDateRangeEndpoint:
 
             assert response.status_code == 200
             # Should be called with None date params
-            mock_get_stats.assert_called_once_with(
-                "no_date", date_from=None, date_to=None
-            )
+            mock_get_stats.assert_called_once_with("no_date", date_from=None, date_to=None)
 
     @pytest.mark.asyncio
     async def test_stats_endpoint_invalid_date_range(self):
