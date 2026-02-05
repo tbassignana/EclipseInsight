@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import datetime
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.core.security import get_current_user
 from app.models.user import User
@@ -19,7 +21,12 @@ router = APIRouter(
 
 
 @router.get("/{short_code}", response_model=URLStats)
-async def get_url_statistics(short_code: str, current_user: User = Depends(get_current_user)):
+async def get_url_statistics(
+    short_code: str,
+    current_user: User = Depends(get_current_user),
+    date_from: datetime | None = Query(None, description="Filter clicks from this date (ISO 8601)"),
+    date_to: datetime | None = Query(None, description="Filter clicks until this date (ISO 8601)"),
+):
     """
     Get comprehensive analytics for a shortened URL.
 
@@ -29,6 +36,10 @@ async def get_url_statistics(short_code: str, current_user: User = Depends(get_c
     - Device and browser breakdown
     - Geographic distribution
     - Time series click data for visualization
+
+    Optional date range filtering:
+    - **date_from**: Start date for click data (ISO 8601, e.g. 2025-01-01)
+    - **date_to**: End date for click data (ISO 8601, e.g. 2025-01-31)
     """
     # Verify the URL exists and user has access
     short_url = await get_short_url_by_code(short_code)
@@ -45,7 +56,14 @@ async def get_url_statistics(short_code: str, current_user: User = Depends(get_c
                 status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view these stats"
             )
 
-    stats = await get_url_stats(short_code)
+    # Validate date range
+    if date_from and date_to and date_from > date_to:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="date_from must be before date_to",
+        )
+
+    stats = await get_url_stats(short_code, date_from=date_from, date_to=date_to)
     if not stats:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Statistics not found")
 

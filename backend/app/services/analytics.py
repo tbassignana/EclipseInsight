@@ -7,8 +7,18 @@ from app.models.url import ShortURL
 from app.schemas.url import URLStats
 
 
-async def get_url_stats(short_code: str) -> URLStats | None:
-    """Get comprehensive statistics for a shortened URL."""
+async def get_url_stats(
+    short_code: str,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
+) -> URLStats | None:
+    """Get comprehensive statistics for a shortened URL.
+
+    Args:
+        short_code: The short code to get stats for.
+        date_from: Optional start date to filter clicks (inclusive).
+        date_to: Optional end date to filter clicks (inclusive, end of day).
+    """
     # Find the URL
     short_url = await ShortURL.find_one({"short_code": short_code})
     if not short_url:
@@ -19,8 +29,20 @@ async def get_url_stats(short_code: str) -> URLStats | None:
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     week_start = today_start - timedelta(days=7)
 
-    # Get all click logs for this URL
-    all_clicks = await ClickLog.find({"short_url_id": short_url_id}).to_list()
+    # Build query with optional date range filter
+    query = {"short_url_id": short_url_id}
+    if date_from or date_to:
+        timestamp_filter = {}
+        if date_from:
+            timestamp_filter["$gte"] = date_from
+        if date_to:
+            # Include the entire end day
+            end_of_day = date_to.replace(hour=23, minute=59, second=59, microsecond=999999)
+            timestamp_filter["$lte"] = end_of_day
+        query["timestamp"] = timestamp_filter
+
+    # Get click logs (filtered by date range if provided)
+    all_clicks = await ClickLog.find(query).to_list()
 
     # Calculate click counts
     total_clicks = len(all_clicks)
@@ -57,19 +79,20 @@ async def get_url_stats(short_code: str) -> URLStats | None:
         {"device": device, "count": count} for device, count in device_counts.most_common()
     ]
 
-    # Calculate clicks over time (last 30 days)
-    thirty_days_ago = now - timedelta(days=30)
+    # Calculate clicks over time — use custom range or default last 30 days
+    range_start = date_from if date_from else (now - timedelta(days=30))
+    range_end = date_to if date_to else now
     daily_clicks = {}
 
     for click in all_clicks:
-        if click.timestamp >= thirty_days_ago:
+        if click.timestamp >= range_start:
             date_key = click.timestamp.strftime("%Y-%m-%d")
             daily_clicks[date_key] = daily_clicks.get(date_key, 0) + 1
 
     # Fill in missing days with zeros
     clicks_over_time = []
-    current_date = thirty_days_ago
-    while current_date <= now:
+    current_date = range_start
+    while current_date <= range_end:
         date_key = current_date.strftime("%Y-%m-%d")
         clicks_over_time.append({"date": date_key, "count": daily_clicks.get(date_key, 0)})
         current_date += timedelta(days=1)
